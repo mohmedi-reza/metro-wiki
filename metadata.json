@@ -1,0 +1,6 @@
+{
+  "name": "دانشنامک | Encyclopedia",
+  "description": "دانشنامه مدرن، مینیمال و بهینه‌سازی‌شده برای زبان فارسی و راست‌چین با استایل سیاه و سفید و کارت‌های تعاملی اصطلاحات",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
