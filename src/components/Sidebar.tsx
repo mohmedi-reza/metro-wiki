@@ -37,7 +37,7 @@ interface SidebarProps {
   onClearRecentlyViewed: () => void;
   activeSectionId?: string;
   onOpenCtcSimulator?: () => void;
-  onOpenStationAtlas?: () => void;
+  onOpenStationAtlas?: (targetTab?: "racks" | "cards" | "table") => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -158,7 +158,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : "text-neutral-500 hover:text-black"
               )}
             >
-              <span>تولز</span>
+              <span>ابزارها</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
             </button>
             <button
@@ -207,30 +207,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Tab Contents: Scrollable */}
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
-          {/* TAB: Tools (تولز) - Contains the CTC simulation button */}
+          {/* TAB: Tools (ابزارها و تولز) */}
           {activeTab === "tools" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-neutral-800">ابزارها و شبیه‌سازها</span>
+                <span className="text-xs font-bold text-neutral-800">ابزارها و نقشه‌های تخصصی</span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-emerald-100 text-emerald-800 font-mono font-semibold">
-                  SCADA LIVE
+                  SCADA & RACKS
                 </span>
               </div>
 
-              {/* Simulation Card and Launch Button */}
+              {/* 1. Simulation Card and Launch Button */}
               <div className="p-3.5 rounded-xl bg-neutral-950 text-white border border-neutral-800 shadow-sm space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                      <h3 className="text-xs font-extrabold text-white">
-                        شبیه‌ساز و مانیتورینگ CTC
-                      </h3>
-                    </div>
-                    <p className="text-[11px] text-neutral-400 leading-relaxed">
-                      شبیه‌ساز متمرکز ترافیک و اینترلاکینگ خط ۱ مترو (SCADA). کنترل سوزن‌ها، چراغ‌های سیگنال، روتینگ و حرکت قطارها.
-                    </p>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <h3 className="text-xs font-extrabold text-white">
+                      شبیه‌ساز و مانیتورینگ متمرکز CTC
+                    </h3>
                   </div>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed">
+                    شبیه‌ساز زنده ترافیک، کنترل سوزن‌ها، چراغ‌های سیگنال، روتینگ و حرکت قطارهای خط ۱ مترو (SCADA).
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-[10px] text-neutral-300 pt-1 border-t border-neutral-800">
@@ -242,17 +240,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                     <span>روتینگ Running/Shunting</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                    <span>تست تزریق خطا</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                    <span>لاگ کنسول رخدادها</span>
-                  </div>
                 </div>
 
-                {/* The Simulation Button */}
                 <button
                   type="button"
                   onClick={() => {
@@ -266,63 +255,79 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </button>
               </div>
 
-              {/* 2. Atlas & Map of Stations, Islands & Signaling Rooms */}
+              {/* 2. Visual Rack Elevations & Signaling Rooms */}
               <div className="p-3.5 rounded-xl bg-white text-neutral-900 border border-neutral-200 shadow-2xs space-y-3">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
-                      <Server className="w-3.5 h-3.5 text-neutral-700" />
+                      <Server className="w-3.5 h-3.5 text-sky-600" />
                       <h3 className="text-xs font-extrabold text-neutral-900">
-                        نقشه رک‌ها، شبکه و اتاق‌های سیگنالینگ
+                        ترسیم بصری رک‌ها و اتاق‌های سیگنال
                       </h3>
                     </div>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-neutral-100 text-neutral-700 font-mono border border-neutral-200 font-semibold">
-                      RACKS
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-sky-50 text-sky-700 font-mono border border-sky-200 font-bold">
+                      42U VISUAL
                     </span>
                   </div>
                   <p className="text-[11px] text-neutral-500 leading-relaxed">
-                    نقشه فیزیکی رک‌های ۱۹ اینچ (U01-U42)، پروتکل‌های شبکه صنعتی و تفکیک ایستگاه‌های خط ۱.
+                    ترسیم شماتیک و فیزیکی ۴۲ یونیت رک‌های ۱۹ اینچ (U01-U42)، بردهای سخت‌افزاری و پروتکل‌های شبکه صنعتی.
                   </p>
-                </div>
-
-                <div className="grid grid-cols-3 gap-1.5 text-[10px] pt-1 border-t border-neutral-100">
-                  <div className="p-1.5 rounded-md bg-neutral-50 border border-neutral-100 text-center">
-                    <span className="block text-neutral-900 font-mono font-bold">۹ سکو</span>
-                    <span className="text-neutral-500 text-[9px]">جزیره‌ای</span>
-                  </div>
-                  <div className="p-1.5 rounded-md bg-neutral-50 border border-neutral-100 text-center">
-                    <span className="block text-neutral-900 font-mono font-bold">۱۱ سکو</span>
-                    <span className="text-neutral-500 text-[9px]">کناری</span>
-                  </div>
-                  <div className="p-1.5 rounded-md bg-neutral-50 border border-neutral-100 text-center">
-                    <span className="block text-neutral-900 font-mono font-bold">۸ اتاق</span>
-                    <span className="text-neutral-500 text-[9px]">SER/CER</span>
-                  </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => {
-                    onOpenStationAtlas?.();
+                    onOpenStationAtlas?.("racks");
                     onCloseMobile();
                   }}
                   className="w-full py-2 px-3 rounded-lg bg-neutral-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-2xs active:scale-[0.99]"
                 >
-                  <Server className="w-3.5 h-3.5 text-neutral-300" />
-                  <span>مشاهده نقشه رک‌ها و اطلس خط ۱</span>
+                  <Server className="w-3.5 h-3.5 text-sky-400" />
+                  <span>مشاهده ترسیم بصری رک‌ها (SER/CER)</span>
                 </button>
               </div>
 
-              {/* Quick Operation Guide */}
-              <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-200 text-[11px] space-y-2 text-neutral-600">
-                <span className="font-bold text-neutral-800 block text-xs">
-                  راهنمای کاربری سریع در موبایل:
+              {/* 3. Station Atlas Cards & Technical Matrix */}
+              <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-200 space-y-2">
+                <span className="text-xs font-bold text-neutral-800 block">
+                  اطلس ساختاری و ماتریس خط ۱:
                 </span>
-                <ul className="space-y-1 list-disc list-inside leading-relaxed">
-                  <li>با یک انگشت صفحه را جابجا و با دو انگشت زوم کنید.</li>
-                  <li>از منوی «پرش به ایستگاه» برای رفتن به هر یک از ۲۰ ایستگاه استفاده کنید.</li>
-                  <li>با لمس سوزن یا سیگنال، وضعیت آن را تغییر دهید یا خطا تزریق کنید.</li>
-                  <li>پنل پایینی لاگ رویدادها در موبایل قابل جابجایی بین تب‌ها و جمع شدن است.</li>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onOpenStationAtlas?.("cards");
+                      onCloseMobile();
+                    }}
+                    className="p-2 rounded-lg bg-white hover:bg-neutral-100 border border-neutral-250 text-right transition-colors cursor-pointer"
+                  >
+                    <span className="font-bold text-neutral-900 block text-[11px]">کارت‌های ایستگاه</span>
+                    <span className="text-[10px] text-neutral-500">۲۰ ایستگاه و سکوها</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onOpenStationAtlas?.("table");
+                      onCloseMobile();
+                    }}
+                    className="p-2 rounded-lg bg-white hover:bg-neutral-100 border border-neutral-250 text-right transition-colors cursor-pointer"
+                  >
+                    <span className="font-bold text-neutral-900 block text-[11px]">ماتریس فنی خط ۱</span>
+                    <span className="text-[10px] text-neutral-500">جدول سوزن‌ها و روت</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick Operation Guide */}
+              <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-200 text-[11px] space-y-1.5 text-neutral-600">
+                <span className="font-bold text-neutral-800 block text-xs">
+                  راهنمای سریع:
+                </span>
+                <ul className="space-y-1 list-disc list-inside leading-relaxed text-[11px]">
+                  <li>کلیک روی هر ساب‌رک در ترسیم بصری = مشاهده بردهای داخلی.</li>
+                  <li>امکان تغییر حالت بین ترسیم ۴۲ یونیت و متن کاتالوگ قطعات.</li>
+                  <li>دکمه مودال تمام‌صفحه برای بررسی دقیق در مانیتور یا موبایل.</li>
                 </ul>
               </div>
             </div>

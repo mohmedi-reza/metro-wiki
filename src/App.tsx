@@ -44,6 +44,7 @@ export default function App() {
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [scrollProgress, setScrollProgress] = useState<number>(0);
   const [activeView, setActiveView] = useState<"article" | "atlas" | "simulator">("article");
+  const [atlasInitialTab, setAtlasInitialTab] = useState<"racks" | "cards" | "table">("racks");
   const [simulatorInitialStationId, setSimulatorInitialStationId] = useState<number | undefined>(undefined);
 
   // Annotations (Highlights & Notes) state from localStorage
@@ -406,7 +407,10 @@ export default function App() {
               </button>
               <button
                 type="button"
-                onClick={() => setActiveView("atlas")}
+                onClick={() => {
+                  setAtlasInitialTab("racks");
+                  setActiveView("atlas");
+                }}
                 className={cn(
                   "px-3 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5",
                   activeView === "atlas"
@@ -538,10 +542,14 @@ export default function App() {
               setSimulatorInitialStationId(undefined);
               setActiveView("simulator");
             }}
-            onOpenStationAtlas={() => setActiveView("atlas")}
+            onOpenStationAtlas={(tab) => {
+              if (tab) setAtlasInitialTab(tab);
+              setActiveView("atlas");
+            }}
           />
 
           <StationAtlasPage
+            initialTab={atlasInitialTab}
             onSelectStationInSimulator={(stId) => {
               setSimulatorInitialStationId(stId);
               setActiveView("simulator");
@@ -596,7 +604,10 @@ export default function App() {
               setSimulatorInitialStationId(undefined);
               setActiveView("simulator");
             }}
-            onOpenStationAtlas={() => setActiveView("atlas")}
+            onOpenStationAtlas={(tab) => {
+              if (tab) setAtlasInitialTab(tab);
+              setActiveView("atlas");
+            }}
           />
 
         {/* Middle Main Article Area (Scrollable text content) */}

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   Server,
   Layers,
@@ -25,6 +25,8 @@ import { cn } from "../lib/utils";
 import { SignalingRoomRacksMap } from "./signaling/SignalingRoomRacksMap";
 
 interface StationAtlasPageProps {
+  initialTab?: AtlasPrimaryTab;
+  initialRoomId?: string;
   onSelectStationInSimulator?: (stationId: number) => void;
   onNavigateToArticle?: (articleId: string, sectionId?: string) => void;
   onBackToEncyclopedia?: () => void;
@@ -34,17 +36,31 @@ interface StationAtlasPageProps {
 export type AtlasPrimaryTab = "racks" | "cards" | "table";
 
 export const StationAtlasPage: React.FC<StationAtlasPageProps> = ({
+  initialTab = "racks",
+  initialRoomId = "SER-01",
   onSelectStationInSimulator,
   onNavigateToArticle,
   onBackToEncyclopedia,
   onOpenSimulator,
 }) => {
-  const [activeTab, setActiveTab] = useState<AtlasPrimaryTab>("racks");
-  const [activeSignalingRoomId, setActiveSignalingRoomId] = useState<string>("SER-01");
+  const [activeTab, setActiveTab] = useState<AtlasPrimaryTab>(initialTab);
+  const [activeSignalingRoomId, setActiveSignalingRoomId] = useState<string>(initialRoomId);
   const [searchQuery, setSearchQuery] = useState("");
   const [platformFilter, setPlatformFilter] = useState<"all" | "island" | "side" | "ser">("all");
   const [selectedStationId, setSelectedStationId] = useState<number | null>(null);
   const stripScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  useEffect(() => {
+    if (initialRoomId) {
+      setActiveSignalingRoomId(initialRoomId);
+    }
+  }, [initialRoomId]);
 
   const islandCount = useMemo(
     () => STATIONS_DATABASE.filter((s) => s.platformType === "island").length,
@@ -160,66 +176,68 @@ export const StationAtlasPage: React.FC<StationAtlasPageProps> = ({
             </p>
           </div>
 
-          {/* Minimal Metric Overview Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-            <div className="p-3.5 rounded-xl bg-white border border-neutral-200/80 shadow-2xs space-y-1">
-              <span className="text-[11px] font-medium text-neutral-500 block">طول کل مسیر خط ۱</span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-xl font-extrabold font-mono text-neutral-900">۲۰.۲</span>
-                <span className="text-xs text-neutral-500">کیلومتر (۲۰ ایستگاه)</span>
+          {/* Minimal Metric Overview Cards - shown only on stations cards or table views */}
+          {activeTab !== "racks" && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+              <div className="p-3.5 rounded-xl bg-white border border-neutral-200/80 shadow-2xs space-y-1">
+                <span className="text-[11px] font-medium text-neutral-500 block">طول کل مسیر خط ۱</span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xl font-extrabold font-mono text-neutral-900">۲۰.۲</span>
+                  <span className="text-xs text-neutral-500">کیلومتر (۲۰ ایستگاه)</span>
+                </div>
               </div>
-            </div>
 
-            <div
-              onClick={() => {
-                setActiveTab("racks");
-              }}
-              className="p-3.5 rounded-xl bg-white border border-neutral-200/80 shadow-2xs space-y-1 hover:border-black transition-colors cursor-pointer group"
-            >
-              <span className="text-[11px] font-medium text-neutral-500 group-hover:text-black flex items-center justify-between">
-                <span>مراکز سیگنالینگ (SER/CER)</span>
-                <span className="text-[10px] text-neutral-400 group-hover:text-black">مشاهده رک‌ها ←</span>
-              </span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-xl font-extrabold font-mono text-neutral-900">{serCount}</span>
-                <span className="text-xs text-neutral-500">مرکز و سالن علائم</span>
+              <div
+                onClick={() => {
+                  setActiveTab("racks");
+                }}
+                className="p-3.5 rounded-xl bg-white border border-neutral-200/80 shadow-2xs space-y-1 hover:border-black transition-colors cursor-pointer group"
+              >
+                <span className="text-[11px] font-medium text-neutral-500 group-hover:text-black flex items-center justify-between">
+                  <span>مراکز سیگنالینگ (SER/CER)</span>
+                  <span className="text-[10px] text-neutral-400 group-hover:text-black">مشاهده رک‌ها ←</span>
+                </span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xl font-extrabold font-mono text-neutral-900">{serCount}</span>
+                  <span className="text-xs text-neutral-500">مرکز و سالن علائم</span>
+                </div>
               </div>
-            </div>
 
-            <div
-              onClick={() => {
-                setActiveTab("cards");
-                setPlatformFilter("island");
-              }}
-              className="p-3.5 rounded-xl bg-white border border-neutral-200/80 shadow-2xs space-y-1 hover:border-black transition-colors cursor-pointer group"
-            >
-              <span className="text-[11px] font-medium text-neutral-500 group-hover:text-black flex items-center justify-between">
-                <span>سکوهای جزیره‌ای (Island)</span>
-                <span className="text-[10px] text-neutral-400 group-hover:text-black">فیلتر ←</span>
-              </span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-xl font-extrabold font-mono text-neutral-900">{islandCount}</span>
-                <span className="text-xs text-neutral-500">سکو در وسط خط ۱ و ۲</span>
+              <div
+                onClick={() => {
+                  setActiveTab("cards");
+                  setPlatformFilter("island");
+                }}
+                className="p-3.5 rounded-xl bg-white border border-neutral-200/80 shadow-2xs space-y-1 hover:border-black transition-colors cursor-pointer group"
+              >
+                <span className="text-[11px] font-medium text-neutral-500 group-hover:text-black flex items-center justify-between">
+                  <span>سکوهای جزیره‌ای (Island)</span>
+                  <span className="text-[10px] text-neutral-400 group-hover:text-black">فیلتر ←</span>
+                </span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xl font-extrabold font-mono text-neutral-900">{islandCount}</span>
+                  <span className="text-xs text-neutral-500">سکو در وسط خط ۱ و ۲</span>
+                </div>
               </div>
-            </div>
 
-            <div
-              onClick={() => {
-                setActiveTab("cards");
-                setPlatformFilter("side");
-              }}
-              className="p-3.5 rounded-xl bg-white border border-neutral-200/80 shadow-2xs space-y-1 hover:border-black transition-colors cursor-pointer group"
-            >
-              <span className="text-[11px] font-medium text-neutral-500 group-hover:text-black flex items-center justify-between">
-                <span>سکوهای کناری (Side)</span>
-                <span className="text-[10px] text-neutral-400 group-hover:text-black">فیلتر ←</span>
-              </span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-xl font-extrabold font-mono text-neutral-900">{sideCount}</span>
-                <span className="text-xs text-neutral-500">سکو در طرفین ریل‌ها</span>
+              <div
+                onClick={() => {
+                  setActiveTab("cards");
+                  setPlatformFilter("side");
+                }}
+                className="p-3.5 rounded-xl bg-white border border-neutral-200/80 shadow-2xs space-y-1 hover:border-black transition-colors cursor-pointer group"
+              >
+                <span className="text-[11px] font-medium text-neutral-500 group-hover:text-black flex items-center justify-between">
+                  <span>سکوهای کناری (Side)</span>
+                  <span className="text-[10px] text-neutral-400 group-hover:text-black">فیلتر ←</span>
+                </span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xl font-extrabold font-mono text-neutral-900">{sideCount}</span>
+                  <span className="text-xs text-neutral-500">سکو در طرفین ریل‌ها</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -282,123 +300,125 @@ export const StationAtlasPage: React.FC<StationAtlasPageProps> = ({
           </button>
         </div>
 
-        {/* Section 1: Interactive Linear Schematic Line Strip */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <h2 className="text-base font-bold text-neutral-900 flex items-center gap-2">
-                <Train className="w-4 h-4 text-neutral-700" />
-                <span>دیاگرام خطی و نواری ایستگاه‌های خط ۱</span>
-              </h2>
-              <p className="text-xs text-neutral-500">
-                پیمایش افقی پیوسته از پایانه شمالی (قدس) تا پایانه جنوبی (دفاع مقدس). کلیک روی هر ایستگاه یا نشان SER رک‌ها و مشخصات آن را باز می‌کند.
-              </p>
-            </div>
+        {/* Section 1: Interactive Linear Schematic Line Strip (shown on stations and table views) */}
+        {activeTab !== "racks" && (
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <h2 className="text-base font-bold text-neutral-900 flex items-center gap-2">
+                  <Train className="w-4 h-4 text-neutral-700" />
+                  <span>دیاگرام خطی و نواری ایستگاه‌های خط ۱</span>
+                </h2>
+                <p className="text-xs text-neutral-500">
+                  پیمایش افقی پیوسته از پایانه شمالی (قدس) تا پایانه جنوبی (دفاع مقدس). کلیک روی هر ایستگاه یا نشان SER رک‌ها و مشخصات آن را باز می‌کند.
+                </p>
+              </div>
 
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => scrollStrip("right")}
-                className="p-1.5 rounded-lg border border-neutral-200 hover:bg-neutral-100 text-neutral-600 transition-colors cursor-pointer"
-                title="حرکت به سمت شمال (راست)"
-                aria-label="حرکت به سمت شمال"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollStrip("left")}
-                className="p-1.5 rounded-lg border border-neutral-200 hover:bg-neutral-100 text-neutral-600 transition-colors cursor-pointer"
-                title="حرکت به سمت جنوب (چپ)"
-                aria-label="حرکت به سمت جنوب"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Scrollable schematic line */}
-          <div
-            ref={stripScrollRef}
-            className="w-full overflow-x-auto pb-4 pt-2 scrollbar-thin border border-neutral-200 rounded-xl bg-neutral-50/50 p-4 select-none"
-          >
-            <div className="min-w-[1750px] relative">
-              {/* Connecting Track Line */}
-              <div className="absolute top-1/2 -translate-y-1/2 left-4 right-4 h-1 bg-neutral-300 rounded-full" />
-
-              {/* Station Nodes */}
-              <div className="relative flex items-center justify-between px-2">
-                {STATIONS_DATABASE.map((st) => {
-                  const isSelected = selectedStationId === st.id;
-                  const isIsland = st.platformType === "island";
-                  const hasSER = Boolean(st.signalingRoom);
-
-                  return (
-                    <button
-                      key={st.id}
-                      type="button"
-                      onClick={() => handleStationClick(st.id)}
-                      className={cn(
-                        "group flex flex-col items-center gap-2 focus:outline-hidden transition-transform cursor-pointer relative z-10",
-                        isSelected && "scale-105"
-                      )}
-                    >
-                      {/* Top Badges: Island / SER */}
-                      <div className="h-5 flex items-center gap-1">
-                        {hasSER && (
-                          <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (st.signalingRoom) {
-                                openSignalingRoomMap(st.signalingRoom.id);
-                              }
-                            }}
-                            title="مشاهده نقشه رک‌های این اتاق"
-                            className="text-[9px] px-1 py-0.2 rounded-sm bg-neutral-900 text-white font-mono font-bold hover:bg-black transition-colors cursor-pointer"
-                          >
-                            SER
-                          </span>
-                        )}
-                        <span
-                          className={cn(
-                            "text-[9px] px-1 py-0.2 rounded-sm font-mono border",
-                            isIsland
-                              ? "bg-neutral-100 text-neutral-800 border-neutral-300"
-                              : "bg-white text-neutral-500 border-neutral-200"
-                          )}
-                        >
-                          {isIsland ? "جزیره‌ای" : "کناری"}
-                        </span>
-                      </div>
-
-                      {/* Station Node Point on the line */}
-                      <div
-                        className={cn(
-                          "w-6 h-6 rounded-full flex items-center justify-center font-mono text-[10px] font-bold border-2 transition-all",
-                          isSelected
-                            ? "bg-black text-white border-black ring-4 ring-neutral-200"
-                            : "bg-white text-neutral-700 border-neutral-400 group-hover:border-black group-hover:text-black"
-                        )}
-                      >
-                        {String(st.id).padStart(2, "0")}
-                      </div>
-
-                      {/* Station Name & Chainage */}
-                      <div className="text-center w-20">
-                        <span className="block text-xs font-bold text-neutral-900 truncate group-hover:text-black">
-                          {st.name}
-                        </span>
-                        <span className="block text-[10px] font-mono text-neutral-400">
-                          {st.chainage}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => scrollStrip("right")}
+                  className="p-1.5 rounded-lg border border-neutral-200 hover:bg-neutral-100 text-neutral-600 transition-colors cursor-pointer"
+                  title="حرکت به سمت شمال (راست)"
+                  aria-label="حرکت به سمت شمال"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollStrip("left")}
+                  className="p-1.5 rounded-lg border border-neutral-200 hover:bg-neutral-100 text-neutral-600 transition-colors cursor-pointer"
+                  title="حرکت به سمت جنوب (چپ)"
+                  aria-label="حرکت به سمت جنوب"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
               </div>
             </div>
-          </div>
-        </section>
+
+            {/* Scrollable schematic line */}
+            <div
+              ref={stripScrollRef}
+              className="w-full overflow-x-auto pb-4 pt-2 scrollbar-thin border border-neutral-200 rounded-xl bg-neutral-50/50 p-4 select-none"
+            >
+              <div className="min-w-[1750px] relative">
+                {/* Connecting Track Line */}
+                <div className="absolute top-1/2 -translate-y-1/2 left-4 right-4 h-1 bg-neutral-300 rounded-full" />
+
+                {/* Station Nodes */}
+                <div className="relative flex items-center justify-between px-2">
+                  {STATIONS_DATABASE.map((st) => {
+                    const isSelected = selectedStationId === st.id;
+                    const isIsland = st.platformType === "island";
+                    const hasSER = Boolean(st.signalingRoom);
+
+                    return (
+                      <button
+                        key={st.id}
+                        type="button"
+                        onClick={() => handleStationClick(st.id)}
+                        className={cn(
+                          "group flex flex-col items-center gap-2 focus:outline-hidden transition-transform cursor-pointer relative z-10",
+                          isSelected && "scale-105"
+                        )}
+                      >
+                        {/* Top Badges: Island / SER */}
+                        <div className="h-5 flex items-center gap-1">
+                          {hasSER && (
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (st.signalingRoom) {
+                                  openSignalingRoomMap(st.signalingRoom.id);
+                                }
+                              }}
+                              title="مشاهده نقشه رک‌های این اتاق"
+                              className="text-[9px] px-1 py-0.2 rounded-sm bg-neutral-900 text-white font-mono font-bold hover:bg-black transition-colors cursor-pointer"
+                            >
+                              SER
+                            </span>
+                          )}
+                          <span
+                            className={cn(
+                              "text-[9px] px-1 py-0.2 rounded-sm font-mono border",
+                              isIsland
+                                ? "bg-neutral-100 text-neutral-800 border-neutral-300"
+                                : "bg-white text-neutral-500 border-neutral-200"
+                            )}
+                          >
+                            {isIsland ? "جزیره‌ای" : "کناری"}
+                          </span>
+                        </div>
+
+                        {/* Station Node Point on the line */}
+                        <div
+                          className={cn(
+                            "w-6 h-6 rounded-full flex items-center justify-center font-mono text-[10px] font-bold border-2 transition-all",
+                            isSelected
+                              ? "bg-black text-white border-black ring-4 ring-neutral-200"
+                              : "bg-white text-neutral-700 border-neutral-400 group-hover:border-black group-hover:text-black"
+                          )}
+                        >
+                          {String(st.id).padStart(2, "0")}
+                        </div>
+
+                        {/* Station Name & Chainage */}
+                        <div className="text-center w-20">
+                          <span className="block text-xs font-bold text-neutral-900 truncate group-hover:text-black">
+                            {st.name}
+                          </span>
+                          <span className="block text-[10px] font-mono text-neutral-400">
+                            {st.chainage}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* =========================================================================
             TAB 1: RACKS & NETWORK MAP VIEW (Primary demanded view)
