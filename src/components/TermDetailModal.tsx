@@ -1,6 +1,7 @@
 import React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X, Layers, BookOpen, Clock, Tag, ArrowLeft } from "lucide-react";
+import { TechnicalFigurePlaceholder } from "./TechnicalFigurePlaceholder";
 import { encyclopediaTerms, TermDefinition } from "../data/encyclopediaData";
 import { cn } from "../lib/utils";
 
@@ -66,15 +67,27 @@ export const TermDetailModal: React.FC<TermDetailModalProps> = ({
                 </p>
               </div>
 
-              {/* Minimal schematic placeholder */}
-              <div className="h-28 w-full bg-neutral-50 border border-neutral-200 rounded-md flex flex-col items-center justify-center p-3 text-center">
-                <div className="text-xs font-mono text-neutral-500 mb-1">
-                  [ DIAGRAM / SYSTEM ARCHITECTURE SCHEMA ]
-                </div>
-                <span className="text-[11px] text-neutral-400">
-                  طرح شماتیک مهندسی بر مبنای استاندارد CENELEC
-                </span>
-              </div>
+              {/* Rich Technical Schematic Diagram */}
+              <TechnicalFigurePlaceholder
+                figureNumber={`دیاگرام #${data.id.toUpperCase()}`}
+                title={`معماری و دیاگرام ${data.title}`}
+                subtitle={data.category}
+                category="استاندارد CENELEC"
+                type={
+                  data.term.includes("محور شمار") || data.term.includes("MH-AX")
+                    ? "axle_counter"
+                    : data.term.includes("تراک") || data.term.includes("MH-TC")
+                    ? "track_circuit"
+                    : data.term.includes("ATP") || data.term.includes("ATO") || data.term.includes("کنترل قطار")
+                    ? "atc_onboard"
+                    : data.term.includes("اینترلاکینگ") || data.term.includes("EIL")
+                    ? "interlocking"
+                    : data.term.includes("CTC")
+                    ? "ctc_network"
+                    : "generic"
+                }
+                caption={`طرح شماتیک و ارتباطات فنی ماژول ${data.term} با هسته کنترلی و سیستم‌های مرتبط`}
+              />
 
               <div className="space-y-3 text-sm text-neutral-700 leading-relaxed text-justify">
                 <p className="font-medium text-black">

@@ -244,24 +244,24 @@ export const StationAtlasPage: React.FC<StationAtlasPageProps> = ({
       {/* Main Content Area */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Primary View Switcher Tabs Bar */}
-        <div className="p-1.5 rounded-2xl bg-neutral-100 border border-neutral-200 flex flex-col sm:flex-row items-center gap-1.5 shadow-2xs">
+        <div className="p-1.5 rounded-2xl bg-neutral-100 border border-neutral-200 flex flex-col md:flex-row items-stretch md:items-center gap-1.5 shadow-2xs">
           <button
             type="button"
             onClick={() => setActiveTab("racks")}
             className={cn(
-              "w-full sm:flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
+              "flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer text-center",
               activeTab === "racks"
                 ? "bg-neutral-900 text-white shadow-2xs"
                 : "text-neutral-600 hover:text-black hover:bg-neutral-200/60"
             )}
           >
-            <Server className="w-4 h-4" />
-            <span>نقشه رک‌ها و شبکه اتاق‌های سیگنالینگ (SER / CER)</span>
+            <Server className="w-4 h-4 shrink-0" />
+            <span className="truncate">نقشه رک‌ها و سالن‌های علائم (SER / CER)</span>
             <span className={cn(
-              "text-[10px] font-mono px-1.5 py-0.2 rounded-sm",
+              "text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0",
               activeTab === "racks" ? "bg-neutral-800 text-neutral-200" : "bg-neutral-200 text-neutral-700"
             )}>
-              ۸ اتاق + OCC
+              ۸ اتاق
             </span>
           </button>
 
@@ -269,16 +269,16 @@ export const StationAtlasPage: React.FC<StationAtlasPageProps> = ({
             type="button"
             onClick={() => setActiveTab("cards")}
             className={cn(
-              "w-full sm:flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
+              "flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer text-center",
               activeTab === "cards"
                 ? "bg-neutral-900 text-white shadow-2xs"
                 : "text-neutral-600 hover:text-black hover:bg-neutral-200/60"
             )}
           >
-            <LayoutGrid className="w-4 h-4" />
-            <span>کارت‌های مشخصات فنی ایستگاه‌ها</span>
+            <LayoutGrid className="w-4 h-4 shrink-0" />
+            <span className="truncate">مشخصات فنی ایستگاه‌ها</span>
             <span className={cn(
-              "text-[10px] font-mono px-1.5 py-0.2 rounded-sm",
+              "text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0",
               activeTab === "cards" ? "bg-neutral-800 text-neutral-200" : "bg-neutral-200 text-neutral-700"
             )}>
               ۲۰ ایستگاه
@@ -289,14 +289,14 @@ export const StationAtlasPage: React.FC<StationAtlasPageProps> = ({
             type="button"
             onClick={() => setActiveTab("table")}
             className={cn(
-              "w-full sm:flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
+              "flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer text-center",
               activeTab === "table"
                 ? "bg-neutral-900 text-white shadow-2xs"
                 : "text-neutral-600 hover:text-black hover:bg-neutral-200/60"
             )}
           >
-            <TableIcon className="w-4 h-4" />
-            <span>ماتریس ساختار فنی خط ۱</span>
+            <TableIcon className="w-4 h-4 shrink-0" />
+            <span className="truncate">ماتریس ساختار خط ۱</span>
           </button>
         </div>
 

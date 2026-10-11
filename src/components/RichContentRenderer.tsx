@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 import { WikiWord } from "./WikiWord";
 import { ModernTable } from "./ModernTable";
+import { TechnicalFigurePlaceholder } from "./TechnicalFigurePlaceholder";
 import { encyclopediaTerms } from "../data/encyclopediaData";
 import { ArticleAnnotation } from "../types/annotation";
 import { Info, AlertCircle, FileText, CheckCircle2 } from "lucide-react";
@@ -218,6 +219,108 @@ export const RichContentRenderer: React.FC<RichContentRendererProps> = ({
         continue;
       }
 
+      // 0. Technical Figure Placeholder tag (<TechnicalFigure ... /> or [تصویر: ...])
+      if (
+        trimmed.startsWith("<TechnicalFigure") ||
+        trimmed.startsWith("![") ||
+        /^\[(تصویر|شکل|دیاگرام|نمودار|نقشه|طرح)/i.test(trimmed)
+      ) {
+        // Tag based: <TechnicalFigure ... />
+        if (trimmed.startsWith("<TechnicalFigure")) {
+          const titleMatch = trimmed.match(/title=["']([^"']+)["']/);
+          const figNoMatch = trimmed.match(/figureNumber=["']([^"']+)["']/);
+          const subMatch = trimmed.match(/subtitle=["']([^"']+)["']/);
+          const catMatch = trimmed.match(/category=["']([^"']+)["']/);
+          const capMatch = trimmed.match(/caption=["']([^"']+)["']/);
+          const typeMatch = trimmed.match(/type=["']([^"']+)["']/);
+          const stdMatch = trimmed.match(/standard=["']([^"']+)["']/);
+          const docMatch = trimmed.match(/docCode=["']([^"']+)["']/);
+
+          blocks.push(
+            <TechnicalFigurePlaceholder
+              key={`tech-fig-${lineIdx}`}
+              figureNumber={figNoMatch ? figNoMatch[1] : undefined}
+              title={titleMatch ? titleMatch[1] : "طرح شماتیک مهندسی"}
+              subtitle={subMatch ? subMatch[1] : undefined}
+              category={catMatch ? catMatch[1] : undefined}
+              caption={capMatch ? capMatch[1] : undefined}
+              type={(typeMatch ? typeMatch[1] : "generic") as any}
+              blueprintSpec={{
+                standard: stdMatch ? stdMatch[1] : undefined,
+                docCode: docMatch ? docMatch[1] : undefined,
+              }}
+            />
+          );
+          lineIdx++;
+          continue;
+        }
+
+        // Bracket based: [تصویر ۱: دیاگرام بلوکی سیستم | category="معماری" | type="axle_counter"]
+        if (trimmed.startsWith("[")) {
+          const inner = trimmed.replace(/^\[/, "").replace(/\]$/, "");
+          const parts = inner.split("|").map((p) => p.trim());
+          const mainPart = parts[0] || "";
+          let figNumber = "شکل";
+          let figTitle = mainPart;
+
+          if (mainPart.includes(":")) {
+            const [num, ...rest] = mainPart.split(":");
+            figNumber = num.trim();
+            figTitle = rest.join(":").trim();
+          }
+
+          let figType: any = "generic";
+          let figCat = "طرح شماتیک مهندسی";
+          let figCaption = "";
+          let figStd = "CENELEC SIL 4";
+          let figDoc = "";
+
+          parts.slice(1).forEach((part) => {
+            const [k, v] = part.split("=").map((s) => s.trim().replace(/^["']|["']$/g, ""));
+            if (k === "type") figType = v;
+            if (k === "category") figCat = v;
+            if (k === "caption") figCaption = v;
+            if (k === "standard") figStd = v;
+            if (k === "docCode") figDoc = v;
+          });
+
+          blocks.push(
+            <TechnicalFigurePlaceholder
+              key={`bracket-fig-${lineIdx}`}
+              figureNumber={figNumber}
+              title={figTitle}
+              category={figCat}
+              caption={figCaption || undefined}
+              type={figType}
+              blueprintSpec={{
+                standard: figStd,
+                docCode: figDoc || undefined,
+              }}
+            />
+          );
+          lineIdx++;
+          continue;
+        }
+
+        // Standard Markdown image: ![Alt Text](url or caption)
+        const mdImgMatch = trimmed.match(/^!\[(.*?)\]\((.*?)\)/);
+        if (mdImgMatch) {
+          const alt = mdImgMatch[1];
+          const caption = mdImgMatch[2];
+          blocks.push(
+            <TechnicalFigurePlaceholder
+              key={`md-img-${lineIdx}`}
+              figureNumber="تصویر"
+              title={alt || "طرح فنی و دیاگرام"}
+              caption={caption || alt}
+              type="generic"
+            />
+          );
+          lineIdx++;
+          continue;
+        }
+      }
+
       // 1. Table Detection (Line starts and ends with | or contains multiple |)
       if (trimmed.startsWith("|") && trimmed.includes("|", 1)) {
         const tableLines: string[] = [];
@@ -420,7 +523,10 @@ export const RichContentRenderer: React.FC<RichContentRendererProps> = ({
         !rawLines[lineIdx].trim().startsWith("- ") &&
         !rawLines[lineIdx].trim().startsWith("* ") &&
         !/^(\d+|[۰-۹]+)\./.test(rawLines[lineIdx].trim()) &&
-        !rawLines[lineIdx].trim().startsWith("> ")
+        !rawLines[lineIdx].trim().startsWith("> ") &&
+        !rawLines[lineIdx].trim().startsWith("<TechnicalFigure") &&
+        !rawLines[lineIdx].trim().startsWith("![") &&
+        !/^\[(تصویر|شکل|دیاگرام|نمودار|نقشه|طرح)/i.test(rawLines[lineIdx].trim())
       ) {
         paragraphLines.push(rawLines[lineIdx].trim());
         lineIdx++;

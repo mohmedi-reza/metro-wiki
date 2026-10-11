@@ -237,53 +237,53 @@ export const SignalingRoomRacksMap: React.FC<SignalingRoomRacksMapProps> = ({
       <div className="bg-white rounded-2xl border border-neutral-200 p-4 sm:p-5 shadow-2xs space-y-4">
         
         {/* Top Info Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="space-y-1">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
+          <div className="space-y-1.5 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="p-1 rounded-md bg-neutral-900 text-white">
+              <span className="p-1 rounded-md bg-neutral-900 text-white shrink-0">
                 <Server className="w-3.5 h-3.5" />
               </span>
-              <h2 className="text-base sm:text-lg font-bold text-neutral-900">
+              <h2 className="text-sm sm:text-base md:text-lg font-bold text-neutral-900 truncate">
                 {currentRoom.title}
               </h2>
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200">
+              <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200 shrink-0">
                 {currentRoom.id}
               </span>
-              <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
                 {currentRoom.silLevel}
               </span>
             </div>
-            <p className="text-xs text-neutral-500">
-              موقعیت: ایستگاه {currentRoom.stationName} • سیستم: {currentRoom.interlockingType} • تعداد: {currentRoom.racks.length} کابینت ۱۹ اینچ
+            <p className="text-xs text-neutral-500 leading-relaxed">
+              موقعیت: ایستگاه {currentRoom.stationName} • سیستم: {currentRoom.interlockingType} • {currentRoom.racks.length} کابینت ۱۹ اینچ
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+          <div className="flex items-center gap-2 self-stretch sm:self-auto shrink-0 flex-wrap">
             {onSelectStationInSimulator && (
               <button
                 type="button"
                 onClick={() => onSelectStationInSimulator(currentRoom.stationId)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold transition-colors cursor-pointer border border-neutral-200"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold transition-colors cursor-pointer border border-neutral-200"
               >
                 <Activity className="w-3.5 h-3.5 text-emerald-600" />
-                <span>پایش در شبیه‌ساز CTC</span>
+                <span>پایش در CTC</span>
               </button>
             )}
 
             <button
               type="button"
               onClick={() => handleOpenRackModal("visual")}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-neutral-900 hover:bg-black text-white text-xs font-bold transition-all cursor-pointer shadow-2xs"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-black text-white text-xs font-bold transition-all cursor-pointer shadow-2xs"
             >
               <Maximize2 className="w-3.5 h-3.5" />
-              <span>مودال تمام‌صفحه رک</span>
+              <span>مودال تمام‌صفحه</span>
             </button>
           </div>
         </div>
 
         {/* Clean, Horizontal Room Switcher */}
         <div className="pt-2 border-t border-neutral-100">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none -mx-1 px-1">
             {SIGNALING_ROOMS_DETAILED_DATA.map((room) => {
               const isSelected = room.id === selectedRoomId;
               return (
@@ -296,7 +296,7 @@ export const SignalingRoomRacksMap: React.FC<SignalingRoomRacksMapProps> = ({
                     setSelectedSubrackId(null);
                   }}
                   className={cn(
-                    "px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 border shrink-0",
+                    "px-2.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 border shrink-0",
                     isSelected
                       ? "bg-neutral-900 text-white border-neutral-900 shadow-xs"
                       : "bg-neutral-50 hover:bg-neutral-100 text-neutral-600 border-neutral-200 hover:text-neutral-900"
@@ -309,7 +309,7 @@ export const SignalingRoomRacksMap: React.FC<SignalingRoomRacksMapProps> = ({
                     )}
                   />
                   <span>{room.id}</span>
-                  <span className="text-[11px] opacity-75 font-normal">
+                  <span className="text-[10px] opacity-75 font-normal">
                     ({room.stationName.split(" ")[0]})
                   </span>
                 </button>
@@ -319,10 +319,10 @@ export const SignalingRoomRacksMap: React.FC<SignalingRoomRacksMapProps> = ({
         </div>
 
         {/* Rack Cabinet Selector Chips in Current Room */}
-        <div className="pt-2 border-t border-neutral-100 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-neutral-700">انتخاب رک سالن:</span>
-            <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="pt-2 border-t border-neutral-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+            <span className="text-xs font-bold text-neutral-600 shrink-0">رک سالن:</span>
+            <div className="flex items-center gap-1.5 shrink-0">
               {currentRoom.racks.map((r) => {
                 const isSelected = activeRack?.id === r.id;
                 return (
@@ -334,7 +334,7 @@ export const SignalingRoomRacksMap: React.FC<SignalingRoomRacksMapProps> = ({
                       setSelectedSubrackId(r.subracks[0]?.id || null);
                     }}
                     className={cn(
-                      "px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 border",
+                      "px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1 border shrink-0",
                       isSelected
                         ? "bg-sky-600 text-white border-sky-600 shadow-2xs"
                         : "bg-white hover:bg-neutral-100 text-neutral-700 border-neutral-300"
@@ -342,7 +342,7 @@ export const SignalingRoomRacksMap: React.FC<SignalingRoomRacksMapProps> = ({
                   >
                     <span>{r.id}</span>
                     <span className="text-[10px] opacity-80 font-normal">
-                      ({r.subracks.length} ساب‌رک)
+                      ({r.subracks.length})
                     </span>
                   </button>
                 );
@@ -351,46 +351,46 @@ export const SignalingRoomRacksMap: React.FC<SignalingRoomRacksMapProps> = ({
           </div>
 
           {/* Display Mode Tabs (ترسیم بصری رک / جزییات متن و توضیحات / پروتکل‌ها) */}
-          <div className="flex items-center gap-1 p-1 bg-neutral-100 rounded-xl text-xs font-semibold">
+          <div className="flex items-center gap-1 p-1 bg-neutral-100 rounded-xl text-xs font-semibold overflow-x-auto scrollbar-none">
             <button
               type="button"
               onClick={() => setDisplayMode("visual_drawing")}
               className={cn(
-                "px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5",
+                "px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap",
                 displayMode === "visual_drawing"
                   ? "bg-white text-black font-bold shadow-2xs"
                   : "text-neutral-600 hover:text-black"
               )}
             >
-              <Eye className="w-3.5 h-3.5 text-sky-600" />
-              <span>ترسیم بصری رک (42U Visual)</span>
+              <Eye className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+              <span>ترسیم بصری رک (42U)</span>
             </button>
 
             <button
               type="button"
               onClick={() => setDisplayMode("text_detail")}
               className={cn(
-                "px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5",
+                "px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap",
                 displayMode === "text_detail"
                   ? "bg-white text-black font-bold shadow-2xs"
                   : "text-neutral-600 hover:text-black"
               )}
             >
-              <FileText className="w-3.5 h-3.5 text-amber-600" />
-              <span>جزییات متن و کاتالوگ کارت‌ها</span>
+              <FileText className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span>کاتالوگ کارت‌ها</span>
             </button>
 
             <button
               type="button"
               onClick={() => setDisplayMode("network_protocols")}
               className={cn(
-                "px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5",
+                "px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap",
                 displayMode === "network_protocols"
                   ? "bg-white text-black font-bold shadow-2xs"
                   : "text-neutral-600 hover:text-black"
               )}
             >
-              <Network className="w-3.5 h-3.5 text-indigo-600" />
+              <Network className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
               <span>پروتکل‌های شبکه</span>
             </button>
 
@@ -398,14 +398,14 @@ export const SignalingRoomRacksMap: React.FC<SignalingRoomRacksMapProps> = ({
               type="button"
               onClick={() => setDisplayMode("room_layout")}
               className={cn(
-                "px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5",
+                "px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap",
                 displayMode === "room_layout"
                   ? "bg-white text-black font-bold shadow-2xs"
                   : "text-neutral-600 hover:text-black"
               )}
             >
-              <LayoutGrid className="w-3.5 h-3.5 text-neutral-600" />
-              <span>چیدمان سالن ({currentRoom.racks.length} رک)</span>
+              <LayoutGrid className="w-3.5 h-3.5 text-neutral-600 shrink-0" />
+              <span>چیدمان سالن ({currentRoom.racks.length})</span>
             </button>
           </div>
         </div>
@@ -415,19 +415,19 @@ export const SignalingRoomRacksMap: React.FC<SignalingRoomRacksMapProps> = ({
       {/* MODE 1: VISUAL 42U RACK DRAWING + INTERACTIVE LIVE CARD INSPECTOR         */}
       {/* ========================================================================= */}
       {displayMode === "visual_drawing" && activeRack && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-5 items-start">
           
-          {/* Left Column (lg:col-span-7): The Authentic 42U Visual Rack Drawing */}
-          <div className="lg:col-span-7 bg-white p-4 rounded-2xl border border-neutral-200 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <h3 className="text-sm font-bold text-neutral-900">
+          {/* Main Visual Rack Drawing Column */}
+          <div className="w-full lg:col-span-7 bg-white p-3 sm:p-4 rounded-2xl border border-neutral-200 shadow-2xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-neutral-100 gap-1.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <h3 className="text-xs sm:text-sm font-bold text-neutral-900 truncate">
                   ترسیم فیزیکی محفظه ۱۹ اینچ {activeRack.id} ({activeRack.name}):
                 </h3>
               </div>
-              <span className="text-xs text-neutral-400 font-mono">
-                کلیک روی هر ساب‌رک = بازرسی بردهای داخلی
+              <span className="text-[11px] text-neutral-400 font-mono">
+                کلیک روی ساب‌رک = بازرسی بردها
               </span>
             </div>
 
@@ -440,28 +440,30 @@ export const SignalingRoomRacksMap: React.FC<SignalingRoomRacksMapProps> = ({
             />
           </div>
 
-          {/* Right Column (lg:col-span-5): The Interactive Subrack & Card Inspector */}
-          <div className="lg:col-span-5 space-y-4">
+          {/* Interactive Subrack & Card Inspector Column */}
+          <div className="w-full lg:col-span-5 space-y-4">
             {activeSubrack ? (
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-neutral-200 shadow-2xs space-y-4 sticky top-4">
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-neutral-200 shadow-2xs space-y-4 lg:sticky lg:top-4">
                 
                 {/* Inspector Header */}
                 <div className="space-y-1.5 pb-3 border-b border-neutral-100">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-neutral-900 text-white">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-neutral-900 text-white shrink-0">
                       U{activeSubrack.uStart}-U{activeSubrack.uEnd} ({activeSubrack.heightU}U)
                     </span>
-                    <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold">
+                    <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold shrink-0">
                       {activeSubrack.safetyLevel}
                     </span>
                   </div>
 
-                  <h3 className="text-base font-extrabold text-neutral-900">
+                  <h3 className="text-sm sm:text-base font-extrabold text-neutral-900 leading-snug">
                     {activeSubrack.title}
                   </h3>
-                  <span className="text-xs font-mono text-neutral-400 block">
-                    {activeSubrack.titleEn} • کد فنی: <strong>{activeSubrack.modelCode}</strong>
-                  </span>
+                  <div className="text-[11px] font-mono text-neutral-500 flex flex-wrap items-center gap-1.5">
+                    <span>{activeSubrack.titleEn}</span>
+                    <span>•</span>
+                    <span>کد فنی: <strong className="text-neutral-800">{activeSubrack.modelCode}</strong></span>
+                  </div>
                 </div>
 
                 {/* Subrack Specs Grid */}

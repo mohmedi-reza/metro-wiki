@@ -406,14 +406,14 @@ export const VisualRackDrawing: React.FC<VisualRackDrawingProps> = ({
       <div className="relative mx-auto max-w-3xl bg-neutral-950 rounded-2xl border-4 border-neutral-800 p-2 sm:p-3 shadow-2xl overflow-hidden">
         
         {/* RACK ROOF: Ventilation Fan Unit & Exhaust Grille */}
-        <div className="mb-2 p-2 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-between text-[10px] font-mono text-neutral-400">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-white font-bold">سیستم تهویه سقفی رک (RITTAL ROOF FAN UNIT)</span>
+        <div className="mb-2 p-2 rounded-xl bg-neutral-900 border border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between text-[9px] sm:text-[10px] font-mono text-neutral-400 gap-1">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="text-white font-bold truncate">تهویه سقفی رک (ROOF FAN UNIT)</span>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-emerald-400">۴ فن دمنده فعال • 24.5°C</span>
-            <span className="text-neutral-500">فیلتر IP54</span>
+          <div className="flex items-center justify-between sm:justify-end gap-2 text-neutral-400">
+            <span className="text-emerald-400 font-semibold">۴ فن • 24.5°C</span>
+            <span>IP54</span>
           </div>
         </div>
 
@@ -474,11 +474,11 @@ export const VisualRackDrawing: React.FC<VisualRackDrawingProps> = ({
                   }}
                 >
                   {/* Subrack Header Strip */}
-                  <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-neutral-800 shrink-0 gap-2">
-                    <div className="flex items-center gap-2 truncate">
+                  <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-neutral-800 shrink-0 gap-1.5">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       {/* Left Unit Badge */}
-                      <span className="font-mono text-[10px] font-black px-2 py-0.5 rounded-md bg-neutral-950 text-sky-400 border border-neutral-800 shrink-0">
-                        U{sub.uStart}-U{sub.uEnd} ({sub.heightU}U)
+                      <span className="font-mono text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded bg-neutral-950 text-sky-400 border border-neutral-800 shrink-0">
+                        U{sub.uStart}-{sub.uEnd}
                       </span>
 
                       {/* Subrack Title */}
@@ -487,18 +487,18 @@ export const VisualRackDrawing: React.FC<VisualRackDrawingProps> = ({
                       </h4>
 
                       {/* Model Code */}
-                      <span className="text-[10px] font-mono text-neutral-400 hidden sm:inline">
+                      <span className="text-[9px] font-mono text-neutral-400 hidden md:inline truncate">
                         [{sub.modelCode}]
                       </span>
                     </div>
 
                     {/* Right Badges */}
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-800 font-bold">
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800 font-bold">
                         {sub.safetyLevel}
                       </span>
                       {isSelected && (
-                        <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping" />
                       )}
                     </div>
                   </div>
@@ -507,17 +507,17 @@ export const VisualRackDrawing: React.FC<VisualRackDrawingProps> = ({
                   {renderSubrackFaceplate(sub, isSelected)}
 
                   {/* Subrack Footer Status / Hardware Count */}
-                  <div className="flex items-center justify-between pt-1.5 mt-1.5 border-t border-neutral-800/80 text-[10px] font-mono text-neutral-400 shrink-0">
-                    <div className="flex items-center gap-3">
-                      <span>باس: <strong className="text-neutral-200">{sub.busProtocol}</strong></span>
-                      <span>تغذیه: <strong className="text-neutral-200">{sub.powerSpec}</strong></span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-1.5 mt-1.5 border-t border-neutral-800/80 text-[9px] sm:text-[10px] font-mono text-neutral-400 shrink-0 gap-1">
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="truncate">باس: <strong className="text-neutral-200">{sub.busProtocol}</strong></span>
+                      <span className="truncate hidden xs:inline">• تغذیه: <strong className="text-neutral-200">{sub.powerSpec}</strong></span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-sky-300 font-bold">
-                        {sub.components.reduce((acc, c) => acc + c.count, 0)} کارت سخت‌افزاری
+                    <div className="flex items-center justify-between sm:justify-end gap-1.5">
+                      <span className="text-sky-300 font-bold shrink-0">
+                        {sub.components.reduce((acc, c) => acc + c.count, 0)} کارت
                       </span>
-                      <span className="text-neutral-500">کلیک برای باز کردن جزییات ←</span>
+                      <span className="text-neutral-500 text-[8px] sm:text-[9px]">جزئیات ←</span>
                     </div>
                   </div>
                 </div>
@@ -537,14 +537,14 @@ export const VisualRackDrawing: React.FC<VisualRackDrawingProps> = ({
         </div>
 
         {/* RACK BASE: Grounding Busbar & Cable Ingress */}
-        <div className="mt-2 p-2 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-between text-[10px] font-mono text-neutral-400">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-1.5 rounded-xs bg-amber-500 border border-amber-600" />
-            <span className="text-white font-bold">شینه ارت مسی رک (COPPER EARTH BUSBAR)</span>
-            <span className="text-emerald-400">مقاومت: ۰.۷۵ اهم (&lt; ۱.۰Ω)</span>
+        <div className="mt-2 p-2 rounded-xl bg-neutral-900 border border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between text-[9px] sm:text-[10px] font-mono text-neutral-400 gap-1">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="w-2.5 h-1.5 rounded-xs bg-amber-500 border border-amber-600 shrink-0" />
+            <span className="text-white font-bold truncate">شینه ارت مسی (EARTH BUSBAR)</span>
+            <span className="text-emerald-400 shrink-0">۰.۷۵Ω (&lt; ۱.۰Ω)</span>
           </div>
           <div>
-            <span className="text-neutral-400">ورودی کابل‌ها از کف‌پوش کاذب (Raised Floor)</span>
+            <span className="text-neutral-500 text-[8px] sm:text-[9px]">ورودی کابل از کف‌پوش کاذب</span>
           </div>
         </div>
       </div>
