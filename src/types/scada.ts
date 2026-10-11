@@ -13,6 +13,7 @@ export interface SignalingRoomInfo {
   type: 'CER' | 'SER';
   title: string;
   stationId: number;
+  stationName?: string;
   rackCount: number;
   interlockingType: string;
   lcpAvailable: boolean;

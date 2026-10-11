@@ -10,7 +10,7 @@ import { MetroLogo } from "./components/MetroLogo";
 import { ArticleAnnotation } from "./types/annotation";
 import { sampleArticles, encyclopediaTerms, Article } from "./data/encyclopediaData";
 import { CtcSimulator } from "./components/scada/CtcSimulator";
-import { StationAtlasModal } from "./components/StationAtlasModal";
+import { StationAtlasPage } from "./components/StationAtlasPage";
 import {
   Search,
   Menu,
@@ -26,6 +26,8 @@ import {
   Check,
   Highlighter,
   Radio,
+  Layers,
+  Play,
 } from "lucide-react";
 import { cn } from "./lib/utils";
 
@@ -41,8 +43,7 @@ export default function App() {
   const [selectedTermModal, setSelectedTermModal] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [scrollProgress, setScrollProgress] = useState<number>(0);
-  const [isCtcSimulatorActive, setIsCtcSimulatorActive] = useState<boolean>(false);
-  const [isStationAtlasOpen, setIsStationAtlasOpen] = useState<boolean>(false);
+  const [activeView, setActiveView] = useState<"article" | "atlas" | "simulator">("article");
   const [simulatorInitialStationId, setSimulatorInitialStationId] = useState<number | undefined>(undefined);
 
   // Annotations (Highlights & Notes) state from localStorage
@@ -354,8 +355,8 @@ export default function App() {
         />
       </div>
 
-      {/* Top Header with subtle border - Only rendered in Encyclopedia mode */}
-      {!isCtcSimulatorActive && (
+      {/* Top Header with subtle border - Only rendered in Encyclopedia and Atlas mode */}
+      {activeView !== "simulator" && (
         <header className="sticky top-0 z-50 h-14 shrink-0 bg-white/95 backdrop-blur-xs px-4 lg:px-8 flex items-center justify-between border-b border-neutral-100">
           <div className="flex items-center gap-3">
             {/* Mobile hamburger menu */}
@@ -373,6 +374,7 @@ export default function App() {
               className="flex items-center gap-2 cursor-pointer group"
               onClick={() => {
                 setCurrentArticleId("railway-signaling");
+                setActiveView("article");
                 scrollToTop();
               }}
               title="صفحه اصلی دانشنامه قطار شهری"
@@ -387,6 +389,48 @@ export default function App() {
                 </span>
               </div>
             </div>
+
+            {/* Top View Mode Switcher: Encyclopedia | Atlas | Simulator */}
+            <nav className="hidden md:flex items-center gap-1 p-0.5 bg-neutral-100 rounded-lg text-xs font-semibold me-2">
+              <button
+                type="button"
+                onClick={() => setActiveView("article")}
+                className={cn(
+                  "px-3 py-1 rounded-md transition-all cursor-pointer",
+                  activeView === "article"
+                    ? "bg-white text-black shadow-2xs font-bold"
+                    : "text-neutral-500 hover:text-black"
+                )}
+              >
+                دانشنامه
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveView("atlas")}
+                className={cn(
+                  "px-3 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5",
+                  activeView === "atlas"
+                    ? "bg-white text-black shadow-2xs font-bold"
+                    : "text-neutral-500 hover:text-black"
+                )}
+              >
+                <span>نقشه رک‌ها و اطلس</span>
+                <span className="text-[9px] px-1 py-0.2 rounded-sm bg-neutral-200 text-neutral-800 font-mono">
+                  SER/CER
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSimulatorInitialStationId(undefined);
+                  setActiveView("simulator");
+                }}
+                className="px-3 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 text-neutral-500 hover:text-black hover:bg-neutral-200/50"
+              >
+                <Play className="w-3 h-3 fill-current text-neutral-700" />
+                <span>شبیه‌ساز CTC</span>
+              </button>
+            </nav>
           </div>
 
           {/* Global Search Bar (Minimal Trigger) */}
@@ -455,13 +499,70 @@ export default function App() {
         </header>
       )}
 
-      {/* Main Container: CTC Simulator or Technical Encyclopedia */}
-      {isCtcSimulatorActive ? (
+      {/* Main Container: CTC Simulator, Station Atlas Page, or Technical Encyclopedia */}
+      {activeView === "simulator" ? (
         <div className="flex-1 w-full flex flex-col overflow-hidden min-h-0">
           <CtcSimulator
-            onClose={() => setIsCtcSimulatorActive(false)}
+            onClose={() => setActiveView("article")}
             initialStationId={simulatorInitialStationId}
-            onOpenAtlas={() => setIsStationAtlasOpen(true)}
+            onOpenAtlas={() => setActiveView("atlas")}
+          />
+        </div>
+      ) : activeView === "atlas" ? (
+        <div className="flex-1 w-full flex overflow-hidden min-h-0">
+          <Sidebar
+            currentArticleId={currentArticleId}
+            onSelectArticle={(id) => {
+              setCurrentArticleId(id);
+              setActiveView("article");
+              scrollToTop();
+            }}
+            onSelectSection={(articleId, sectionId) => {
+              setCurrentArticleId(articleId);
+              setActiveView("article");
+              setTimeout(() => {
+                scrollToSection(sectionId);
+              }, 80);
+            }}
+            onSelectTerm={(term) => setSelectedTermModal(term)}
+            isOpenMobile={mobileMenuOpen}
+            onCloseMobile={() => setMobileMenuOpen(false)}
+            bookmarkedIds={bookmarkedIds}
+            onRemoveBookmark={(id) => {
+              setBookmarkedIds((prev) => prev.filter((item) => item !== id));
+            }}
+            recentlyViewedIds={recentlyViewedIds}
+            onClearRecentlyViewed={clearRecentlyViewed}
+            activeSectionId={activeSectionId}
+            onOpenCtcSimulator={() => {
+              setSimulatorInitialStationId(undefined);
+              setActiveView("simulator");
+            }}
+            onOpenStationAtlas={() => setActiveView("atlas")}
+          />
+
+          <StationAtlasPage
+            onSelectStationInSimulator={(stId) => {
+              setSimulatorInitialStationId(stId);
+              setActiveView("simulator");
+            }}
+            onNavigateToArticle={(artId, secId) => {
+              setCurrentArticleId(artId);
+              setActiveView("article");
+              if (secId) {
+                setTimeout(() => {
+                  const el = document.getElementById(secId);
+                  el?.scrollIntoView({ behavior: "smooth" });
+                }, 150);
+              } else {
+                scrollToTop();
+              }
+            }}
+            onBackToEncyclopedia={() => setActiveView("article")}
+            onOpenSimulator={() => {
+              setSimulatorInitialStationId(undefined);
+              setActiveView("simulator");
+            }}
           />
         </div>
       ) : (
@@ -493,9 +594,9 @@ export default function App() {
             activeSectionId={activeSectionId}
             onOpenCtcSimulator={() => {
               setSimulatorInitialStationId(undefined);
-              setIsCtcSimulatorActive(true);
+              setActiveView("simulator");
             }}
-            onOpenStationAtlas={() => setIsStationAtlasOpen(true)}
+            onOpenStationAtlas={() => setActiveView("atlas")}
           />
 
         {/* Middle Main Article Area (Scrollable text content) */}
@@ -684,29 +785,6 @@ export default function App() {
         onNavigateToArticle={(artId) => {
           setCurrentArticleId(artId);
           scrollToTop();
-        }}
-      />
-
-      {/* Station, Island Platforms & Signaling Rooms Atlas Modal */}
-      <StationAtlasModal
-        isOpen={isStationAtlasOpen}
-        onClose={() => setIsStationAtlasOpen(false)}
-        onSelectStationInSimulator={(stId) => {
-          setIsStationAtlasOpen(false);
-          setSimulatorInitialStationId(stId);
-          setIsCtcSimulatorActive(true);
-        }}
-        onNavigateToArticle={(artId, secId) => {
-          setIsStationAtlasOpen(false);
-          setCurrentArticleId(artId);
-          if (secId) {
-            setTimeout(() => {
-              const el = document.getElementById(secId);
-              el?.scrollIntoView({ behavior: "smooth" });
-            }, 150);
-          } else {
-            scrollToTop();
-          }
         }}
       />
     </div>

@@ -267,36 +267,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               {/* 2. Atlas & Map of Stations, Islands & Signaling Rooms */}
-              <div className="p-3.5 rounded-xl bg-gradient-to-br from-neutral-900 via-neutral-950 to-slate-950 text-white border border-neutral-800 shadow-sm space-y-3">
+              <div className="p-3.5 rounded-xl bg-white text-neutral-900 border border-neutral-200 shadow-2xs space-y-3">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5 text-cyan-400" />
-                      <h3 className="text-xs font-extrabold text-white">
-                        نقشه ایستگاه‌ها و اتاق‌های سیگنالینگ
+                      <Server className="w-3.5 h-3.5 text-neutral-700" />
+                      <h3 className="text-xs font-extrabold text-neutral-900">
+                        نقشه رک‌ها، شبکه و اتاق‌های سیگنالینگ
                       </h3>
                     </div>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-cyan-950 text-cyan-300 font-mono border border-cyan-800 font-semibold">
-                      ATLAS
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-neutral-100 text-neutral-700 font-mono border border-neutral-200 font-semibold">
+                      RACKS
                     </span>
                   </div>
-                  <p className="text-[11px] text-neutral-400 leading-relaxed">
-                    نقشه شماتیک و اطلس تفکیک ۹ سکوی جزیره‌ای و ۱۱ سکوی کناری، موقعیت اتاق‌های سیگنالینگ (SER/CER)، و پانل‌های LCP.
+                  <p className="text-[11px] text-neutral-500 leading-relaxed">
+                    نقشه فیزیکی رک‌های ۱۹ اینچ (U01-U42)، پروتکل‌های شبکه صنعتی و تفکیک ایستگاه‌های خط ۱.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-1.5 text-[10px] pt-1 border-t border-neutral-800">
-                  <div className="p-1.5 rounded-md bg-neutral-900/80 border border-neutral-800 text-center">
-                    <span className="block text-cyan-400 font-mono font-bold">۹ سکو</span>
-                    <span className="text-neutral-400 text-[9px]">جزیره‌ای</span>
+                <div className="grid grid-cols-3 gap-1.5 text-[10px] pt-1 border-t border-neutral-100">
+                  <div className="p-1.5 rounded-md bg-neutral-50 border border-neutral-100 text-center">
+                    <span className="block text-neutral-900 font-mono font-bold">۹ سکو</span>
+                    <span className="text-neutral-500 text-[9px]">جزیره‌ای</span>
                   </div>
-                  <div className="p-1.5 rounded-md bg-neutral-900/80 border border-neutral-800 text-center">
-                    <span className="block text-amber-400 font-mono font-bold">۱۱ سکو</span>
-                    <span className="text-neutral-400 text-[9px]">کناری</span>
+                  <div className="p-1.5 rounded-md bg-neutral-50 border border-neutral-100 text-center">
+                    <span className="block text-neutral-900 font-mono font-bold">۱۱ سکو</span>
+                    <span className="text-neutral-500 text-[9px]">کناری</span>
                   </div>
-                  <div className="p-1.5 rounded-md bg-neutral-900/80 border border-neutral-800 text-center">
-                    <span className="block text-emerald-400 font-mono font-bold">۸ اتاق</span>
-                    <span className="text-neutral-400 text-[9px]">SER/CER</span>
+                  <div className="p-1.5 rounded-md bg-neutral-50 border border-neutral-100 text-center">
+                    <span className="block text-neutral-900 font-mono font-bold">۸ اتاق</span>
+                    <span className="text-neutral-500 text-[9px]">SER/CER</span>
                   </div>
                 </div>
 
@@ -306,10 +306,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onOpenStationAtlas?.();
                     onCloseMobile();
                   }}
-                  className="w-full py-2.5 px-3 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm active:scale-[0.99]"
+                  className="w-full py-2 px-3 rounded-lg bg-neutral-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-2xs active:scale-[0.99]"
                 >
-                  <MapPin className="w-3.5 h-3.5 text-cyan-200" />
-                  <span>مشاهده اطلس و نقشه کامل</span>
+                  <Server className="w-3.5 h-3.5 text-neutral-300" />
+                  <span>مشاهده نقشه رک‌ها و اطلس خط ۱</span>
                 </button>
               </div>
 

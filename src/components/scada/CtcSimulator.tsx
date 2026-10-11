@@ -55,6 +55,8 @@ import {
   Compass,
   LocateFixed,
   Server,
+  Search,
+  CheckCircle2,
 } from "lucide-react";
 import { MetroLogo } from "../MetroLogo";
 
@@ -159,6 +161,8 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
   // Central Unified Drawer Modal State
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const [drawerTab, setDrawerTab] = useState<"controls" | "logs" | "leds" | "stations" | "guide">("controls");
+  const [drawerStationFilter, setDrawerStationFilter] = useState<"all" | "island" | "side" | "ser">("all");
+  const [drawerStationSearch, setDrawerStationSearch] = useState<string>("");
   const [isStationModalOpen, setIsStationModalOpen] = useState<boolean>(false);
   const [logFilter, setLogFilter] = useState<"all" | "info" | "warning" | "error">("all");
 
@@ -173,6 +177,14 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
   } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Drag tracker ref to distinguish true drags from clicks
+  const dragTrackerRef = useRef<{
+    startX: number;
+    startY: number;
+    initialPan: { x: number; y: number };
+    isDragging: boolean;
+  } | null>(null);
 
   // Kinetic momentum / inertia velocity tracker
   const velocityRef = useRef<{ vx: number; vy: number; lastTime: number; lastX: number; lastY: number }>({
@@ -255,47 +267,6 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
     jumpToStation(STATIONS_DATABASE[nextIdx].id);
   };
 
-  // Center on any Train helper with high clarity & engage live tracking
-  const focusOnTrain = useCallback((trainId?: string) => {
-    stopInertia();
-    const idToFocus = trainId || selectedTrainId || "106";
-    setSelectedTrainId(idToFocus);
-    setIsFollowingTrain(true);
-
-    const train = trains.find((t) => t.id === idToFocus) || trains[0];
-    if (!train) return;
-    const track = tracks.find((t) => t.id === train.currentTrackId);
-    if (!track) return;
-
-    const { posX, posY } = getTrainCoordinates(train, track);
-    const containerWidth = containerRef.current?.clientWidth || window.innerWidth;
-    const containerHeight = containerRef.current?.clientHeight || window.innerHeight;
-    const targetZoom = 1.35; // Crystal clear 135% zoom
-    setZoom(targetZoom);
-    setPan({
-      x: containerWidth / 2 - posX * targetZoom,
-      y: containerHeight / 2 - posY * targetZoom,
-    });
-  }, [trains, tracks, selectedTrainId]);
-
-  // Live Camera Following when isFollowingTrain is active
-  useEffect(() => {
-    if (!isFollowingTrain || isPanning) return;
-    const activeTrain = trains.find((t) => t.id === selectedTrainId);
-    if (!activeTrain) return;
-    const activeTrack = tracks.find((t) => t.id === activeTrain.currentTrackId);
-    if (!activeTrack) return;
-
-    const { posX, posY } = getTrainCoordinates(activeTrain, activeTrack);
-    const containerWidth = containerRef.current?.clientWidth || window.innerWidth;
-    const containerHeight = containerRef.current?.clientHeight || window.innerHeight;
-
-    setPan({
-      x: containerWidth / 2 - posX * zoom,
-      y: containerHeight / 2 - posY * zoom,
-    });
-  }, [trains, isFollowingTrain, selectedTrainId, tracks, zoom, isPanning]);
-
   // Format timestamp helper
   const getTimestamp = useCallback(() => {
     const now = new Date();
@@ -327,6 +298,62 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
     },
     [getTimestamp]
   );
+
+  // Center on any Train helper with high clarity & engage live tracking
+  const focusOnTrain = useCallback((trainId?: string) => {
+    stopInertia();
+    setIsPanning(false);
+    if (dragTrackerRef.current) {
+      dragTrackerRef.current = null;
+    }
+    const idToFocus = trainId || selectedTrainId || "106";
+    setSelectedTrainId(idToFocus);
+    setIsFollowingTrain(true);
+
+    const train = trains.find((t) => t.id === idToFocus) || trains[0];
+    if (!train) return;
+    const track = tracks.find((t) => t.id === train.currentTrackId);
+    if (!track) return;
+
+    const { posX, posY } = getTrainCoordinates(train, track);
+    const containerWidth = containerRef.current?.clientWidth || window.innerWidth;
+    const containerHeight = containerRef.current?.clientHeight || window.innerHeight;
+    const targetZoom = 1.30;
+    setZoom(targetZoom);
+    setPan({
+      x: containerWidth / 2 - posX * targetZoom,
+      y: containerHeight / 2 - posY * targetZoom,
+    });
+
+    if (track.stationId) {
+      setSelectedStationId(track.stationId);
+    }
+
+    addEvent(
+      "CTC",
+      "EVNT_FOCUS",
+      `دوربین بر روی ناوگان ${idToFocus} متمرکز شد. تعقیب پیوسته فعال است.`,
+      "info"
+    );
+  }, [trains, tracks, selectedTrainId, addEvent]);
+
+  // Live Camera Following when isFollowingTrain is active
+  useEffect(() => {
+    if (!isFollowingTrain || isPanning) return;
+    const activeTrain = trains.find((t) => t.id === selectedTrainId);
+    if (!activeTrain) return;
+    const activeTrack = tracks.find((t) => t.id === activeTrain.currentTrackId);
+    if (!activeTrack) return;
+
+    const { posX, posY } = getTrainCoordinates(activeTrain, activeTrack);
+    const containerWidth = containerRef.current?.clientWidth || window.innerWidth;
+    const containerHeight = containerRef.current?.clientHeight || window.innerHeight;
+
+    setPan({
+      x: containerWidth / 2 - posX * zoom,
+      y: containerHeight / 2 - posY * zoom,
+    });
+  }, [trains, isFollowingTrain, selectedTrainId, tracks, zoom, isPanning]);
 
   // Keyboard Navigation: Arrow keys pan left/right at high speed, +/- zoom
   useEffect(() => {
@@ -385,20 +412,26 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
     if (!touchStartRef.current) return;
     if (e.touches.length === 1 && touchStartRef.current.distance === 0) {
       const t = e.touches[0];
+      const dx = t.clientX - touchStartRef.current.x;
+      const dy = t.clientY - touchStartRef.current.y;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > 8) {
+        setIsPanning(true);
+      }
+      if (dist > 25) {
+        setIsFollowingTrain(false);
+      }
+
       const now = performance.now();
       const dt = Math.max(now - velocityRef.current.lastTime, 8);
       const vx = (t.clientX - velocityRef.current.lastX) / dt;
       const vy = (t.clientY - velocityRef.current.lastY) / dt;
       velocityRef.current = { vx, vy, lastTime: now, lastX: t.clientX, lastY: t.clientY };
 
-      const dx = (t.clientX - touchStartRef.current.x) * 1.6;
-      const dy = (t.clientY - touchStartRef.current.y) * 1.4;
-      if (Math.hypot(dx, dy) > 8) {
-        setIsFollowingTrain(false);
-      }
       setPan({
-        x: touchStartRef.current.initialPan.x + dx,
-        y: touchStartRef.current.initialPan.y + dy,
+        x: touchStartRef.current.initialPan.x + dx * 1.2,
+        y: touchStartRef.current.initialPan.y + dy * 1.2,
       });
     } else if (e.touches.length === 2 && touchStartRef.current.distance > 0) {
       const t1 = e.touches[0];
@@ -412,51 +445,59 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
 
   const handleTouchEnd = () => {
     touchStartRef.current = null;
+    setIsPanning(false);
     startInertia();
   };
 
-  // High-Power Mouse Handlers with Momentum Kinetic Physics
+  // High-Power Mouse Handlers with True-Drag Detection & Momentum Physics
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
     stopInertia();
-    if (e.button === 0) {
-      setIsPanning(true);
-      velocityRef.current = { vx: 0, vy: 0, lastTime: performance.now(), lastX: e.clientX, lastY: e.clientY };
-      touchStartRef.current = {
-        x: e.clientX,
-        y: e.clientY,
-        distance: 0,
-        initialPan: { ...pan },
-        initialZoom: zoom,
-      };
-    }
+    dragTrackerRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initialPan: { ...pan },
+      isDragging: false,
+    };
+    velocityRef.current = { vx: 0, vy: 0, lastTime: performance.now(), lastX: e.clientX, lastY: e.clientY };
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isPanning && touchStartRef.current) {
+    if (!dragTrackerRef.current) return;
+    const dx = e.clientX - dragTrackerRef.current.startX;
+    const dy = e.clientY - dragTrackerRef.current.startY;
+    const dist = Math.hypot(dx, dy);
+
+    // Only engage drag state after genuine user movement (> 6px)
+    if (!dragTrackerRef.current.isDragging && dist > 6) {
+      dragTrackerRef.current.isDragging = true;
+      setIsPanning(true);
+    }
+
+    if (dragTrackerRef.current.isDragging) {
       const now = performance.now();
       const dt = Math.max(now - velocityRef.current.lastTime, 8);
       const vx = (e.clientX - velocityRef.current.lastX) / dt;
       const vy = (e.clientY - velocityRef.current.lastY) / dt;
       velocityRef.current = { vx, vy, lastTime: now, lastX: e.clientX, lastY: e.clientY };
 
-      const dx = (e.clientX - touchStartRef.current.x) * 1.6;
-      const dy = (e.clientY - touchStartRef.current.y) * 1.4;
-      if (Math.hypot(dx, dy) > 8) {
+      if (dist > 25) {
         setIsFollowingTrain(false);
       }
+
       setPan({
-        x: touchStartRef.current.initialPan.x + dx,
-        y: touchStartRef.current.initialPan.y + dy,
+        x: dragTrackerRef.current.initialPan.x + dx,
+        y: dragTrackerRef.current.initialPan.y + dy,
       });
     }
   };
 
   const handleMouseUp = () => {
-    if (isPanning) {
+    if (dragTrackerRef.current?.isDragging) {
       setIsPanning(false);
-      touchStartRef.current = null;
       startInertia();
     }
+    dragTrackerRef.current = null;
   };
 
   // High-Speed Mousewheel & Trackpad Traversal (Glides horizontally on line or zooms on Ctrl)
@@ -1382,18 +1423,23 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
             </button>
           </div>
 
-          {/* Atlas & Signaling Map Modal Trigger */}
-          {onOpenAtlas && (
-            <button
-              type="button"
-              onClick={onOpenAtlas}
-              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-cyan-50 hover:bg-cyan-100 text-cyan-800 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-cyan-200/80 shrink-0"
-              title="مشاهده نقشه و اطلس کامل ایستگاه‌ها، سکوهای جزیره‌ای و اتاق‌های سیگنالینگ"
-            >
-              <Layers className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
-              <span className="hidden md:inline">اطلس ایستگاه‌ها</span>
-            </button>
-          )}
+          {/* Atlas & Signaling Map Trigger */}
+          <button
+            type="button"
+            onClick={() => {
+              if (onOpenAtlas) {
+                onOpenAtlas();
+              } else {
+                setDrawerTab("stations");
+                setIsDrawerOpen(true);
+              }
+            }}
+            className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-neutral-200 shrink-0"
+            title="مشاهده نقشه و اطلس کامل ایستگاه‌ها، سکوهای جزیره‌ای و اتاق‌های سیگنالینگ"
+          >
+            <Layers className="w-3.5 h-3.5 text-neutral-600 shrink-0" />
+            <span className="hidden md:inline">صفحه اطلس ایستگاه‌ها</span>
+          </button>
 
           {/* Toggle SER / CER Rooms Layer on Map */}
           <button
@@ -1461,8 +1507,12 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
         className="flex-1 w-full bg-[#f8fafc] relative overflow-hidden cursor-grab active:cursor-grabbing select-none touch-none"
       >
         {/* FLOATING STATION QUICK NAVIGATOR & 20-STATION LINE SCRUBBER */}
-        <div className="absolute top-2.5 inset-x-0 mx-auto w-fit max-w-[96vw] z-20 pointer-events-auto flex flex-col items-center gap-1.5">
-          {/* Main Station Pill */}
+        <div
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="absolute top-2.5 inset-x-0 mx-auto w-fit max-w-[96vw] z-20 pointer-events-auto flex flex-col items-center gap-1.5"
+        >
+          {/* Main Station & Train Focus Pill */}
           <div className="flex items-center gap-1 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full border border-neutral-200/90 shadow-md text-xs text-neutral-800">
             <button
               type="button"
@@ -1497,6 +1547,7 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
 
             {/* Quick Train Focus Selectors with Follow Indicator */}
             <div className="flex items-center gap-1">
+              <span className="text-[10px] text-neutral-400 hidden sm:inline ms-0.5">قطار:</span>
               {trains.map((t) => {
                 const isSelected = selectedTrainId === t.id;
                 return (
@@ -1506,12 +1557,12 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                     onClick={() => focusOnTrain(t.id)}
                     className={`px-2 py-0.5 rounded-full font-bold text-[10.5px] cursor-pointer transition-all flex items-center gap-0.5 ${
                       isSelected
-                        ? "bg-emerald-600 text-white shadow-2xs scale-105"
+                        ? "bg-black text-white shadow-2xs scale-105"
                         : "bg-neutral-100 hover:bg-neutral-200 text-neutral-800"
                     }`}
                     title={`تمرکز و تعقیب قطار ${t.id} (${t.currentTrackId} - ${t.speed} km/h)`}
                   >
-                    <Compass className={`w-3 h-3 shrink-0 ${isSelected && isFollowingTrain ? "animate-spin" : ""}`} />
+                    <Compass className={`w-3 h-3 shrink-0 ${isSelected && isFollowingTrain ? "animate-spin text-emerald-400" : ""}`} />
                     <span>{t.id}</span>
                   </button>
                 );
@@ -1527,15 +1578,15 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                     focusOnTrain(selectedTrainId);
                   }
                 }}
-                className={`px-2 py-0.5 rounded-full font-bold text-[10px] cursor-pointer transition-colors flex items-center gap-1 ms-0.5 ${
+                className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] cursor-pointer transition-colors flex items-center gap-1 ms-1 ${
                   isFollowingTrain
-                    ? "bg-blue-600 text-white shadow-2xs"
+                    ? "bg-emerald-600 text-white shadow-2xs"
                     : "bg-neutral-100 hover:bg-neutral-200 text-neutral-600"
                 }`}
                 title={isFollowingTrain ? "دوربین به صورت خودکار قطار را دنبال می‌کند (کلیک برای غیرفعال‌سازی)" : "فعال‌سازی تعقیب خودکار دوربین روی نقشه"}
               >
                 <LocateFixed className={`w-3 h-3 shrink-0 ${isFollowingTrain ? "animate-pulse" : ""}`} />
-                <span className="hidden xs:inline">{isFollowingTrain ? "تعقیب" : "آزاد"}</span>
+                <span>{isFollowingTrain ? "تعقیب زنده ✓" : "تعقیب آزاد"}</span>
               </button>
             </div>
           </div>
@@ -1562,7 +1613,9 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
               {STATIONS_DATABASE.map((st, idx) => {
                 const ratio = 1 - idx / (STATIONS_DATABASE.length - 1);
                 const isSelected = st.id === selectedStationId;
-                const hasTrain = st.id === 7;
+                const hasTrain = trains.some(
+                  (tr) => tracks.find((t) => t.id === tr.currentTrackId)?.stationId === st.id
+                );
                 return (
                   <span
                     key={`mini-dot-${st.id}`}
@@ -1649,206 +1702,111 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
             transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}
             style={{ transition: isPanning ? "none" : "transform 0.4s cubic-bezier(0.2, 0, 0.2, 1)" }}
           >
-            {/* 1. STATIONS & PLATFORMS */}
+            {/* 1. STATIONS & PLATFORMS - MINIMAL, CLEAN & PROFESSIONAL SCHEMATIC */}
             {STATIONS_DATABASE.map((st, idx) => {
               const startX = MAP_START_X;
               const stepX = MAP_STEP_X;
               const stCenterX = startX + idx * stepX;
-              const isTrainAtStation = st.id === 7;
               const isSelected = st.id === selectedStationId;
-
-              const isAuthenticSouthernStation = st.id >= 18;
+              const hasTrain = trains.some(
+                (tr) => tracks.find((t) => t.id === tr.currentTrackId)?.stationId === st.id
+              );
 
               return (
                 <g key={`station-${st.id}`}>
-                  {isAuthenticSouthernStation ? (
-                    /* AUTHENTIC CTC STATION STYLING (Stations 18, 19, 20 matching real monitor photo) */
-                    <g>
-                      {/* Authentic CTC Station Header above Line 1 */}
-                      <g className="cursor-pointer" onClick={() => jumpToStation(st.id)}>
-                        <rect
-                          x={stCenterX - 75}
-                          y={82}
-                          width={150}
-                          height={24}
-                          fill="#f8fafc"
-                          stroke="#38bdf8"
-                          strokeWidth="1.2"
-                          rx="4"
-                        />
-                        <text
-                          x={stCenterX}
-                          y={98}
-                          fill="#0284c7"
-                          fontSize="10"
-                          fontFamily="monospace"
-                          fontWeight="bold"
-                          textAnchor="middle"
-                          letterSpacing="0.5"
-                        >
-                          {st.pinglishName}
-                        </text>
-                      </g>
+                  {/* Subtle vertical station axis */}
+                  <line
+                    x1={stCenterX}
+                    y1={108}
+                    x2={stCenterX}
+                    y2={292}
+                    stroke={isSelected ? "#0f172a" : "#e2e8f0"}
+                    strokeWidth={isSelected ? "1.5" : "1"}
+                    strokeDasharray="3,3"
+                    opacity={isSelected ? 0.7 : 0.4}
+                  />
 
-                      {/* Line 1 Platform Marker Bracket above Track 1 (y=140) */}
-                      <path
-                        d={`M ${stCenterX - 60},126 L ${stCenterX + 60},126 M ${stCenterX - 60},122 L ${stCenterX - 60},130 M ${stCenterX + 60},122 L ${stCenterX + 60},130`}
-                        stroke="#0284c7"
-                        strokeWidth="1.8"
-                        fill="none"
-                      />
-                      {/* Line 2 Platform Marker Bracket below Track 2 (y=260) */}
-                      <path
-                        d={`M ${stCenterX - 60},274 L ${stCenterX + 60},274 M ${stCenterX - 60},270 L ${stCenterX - 60},278 M ${stCenterX + 60},270 L ${stCenterX + 60},278`}
-                        stroke="#0284c7"
-                        strokeWidth="1.8"
-                        fill="none"
-                      />
-                    </g>
-                  ) : st.platformType === "island" ? (
-                    /* Island Platform between Line 1 (y=140) and Line 2 (y=260) */
+                  {/* PLATFORMS */}
+                  {st.platformType === "island" ? (
+                    /* Clean Island Platform between Track 1 (y=140) and Track 2 (y=260) */
                     <g>
                       <rect
-                        x={stCenterX - 90}
-                        y={178}
-                        width={180}
-                        height={26}
-                        fill="#f1f5f9"
-                        stroke="#cbd5e1"
+                        x={stCenterX - 80}
+                        y={188}
+                        width={160}
+                        height={24}
+                        fill="#f8fafc"
+                        stroke={isSelected ? "#0f172a" : "#cbd5e1"}
                         strokeWidth="1.2"
                         rx="4"
                       />
                       <line
-                        x1={stCenterX - 85}
-                        y1={191}
-                        x2={stCenterX + 85}
-                        y2={191}
+                        x1={stCenterX - 75}
+                        y1={200}
+                        x2={stCenterX + 75}
+                        y2={200}
                         stroke="#cbd5e1"
                         strokeWidth="1"
                         strokeDasharray="4,4"
                       />
                       <text
                         x={stCenterX}
-                        y={194}
+                        y={204}
                         fill="#475569"
-                        fontSize="9"
-                        fontFamily="monospace"
+                        fontSize="8.5"
+                        fontFamily="sans-serif"
                         fontWeight="700"
                         textAnchor="middle"
                       >
-                        سکو جزیره‌ای ({st.alias})
+                        سکو جزیره‌ای (Island)
                       </text>
                     </g>
                   ) : (
-                    /* Side Platforms */
-                    <>
-                      {/* Side Platform Line 1 (Northbound) above Track 1 at y=76 */}
-                      <g>
-                        <rect
-                          x={stCenterX - 90}
-                          y={76}
-                          width={180}
-                          height={18}
-                          fill="#f8fafc"
-                          stroke="#cbd5e1"
-                          strokeWidth="1"
-                          rx="3"
-                        />
-                        <text
-                          x={stCenterX}
-                          y={89}
-                          fill="#64748b"
-                          fontSize="8.5"
-                          fontFamily="monospace"
-                          fontWeight="600"
-                          textAnchor="middle"
-                        >
-                          سکو خط ۱ ({st.alias})
-                        </text>
-                      </g>
-                      {/* Side Platform Line 2 (Southbound) below Track 2 at y=286 */}
-                      <g>
-                        <rect
-                          x={stCenterX - 90}
-                          y={286}
-                          width={180}
-                          height={18}
-                          fill="#f8fafc"
-                          stroke="#cbd5e1"
-                          strokeWidth="1"
-                          rx="3"
-                        />
-                        <text
-                          x={stCenterX}
-                          y={299}
-                          fill="#64748b"
-                          fontSize="8.5"
-                          fontFamily="monospace"
-                          fontWeight="600"
-                          textAnchor="middle"
-                        >
-                          سکو خط ۲ ({st.alias})
-                        </text>
-                      </g>
-                    </>
+                    /* Clean Side Platforms */
+                    <g>
+                      {/* Upper Platform Edge along Track 1 */}
+                      <path
+                        d={`M ${stCenterX - 70},126 L ${stCenterX + 70},126 M ${stCenterX - 70},122 L ${stCenterX - 70},130 M ${stCenterX + 70},122 L ${stCenterX + 70},130`}
+                        stroke={isSelected ? "#0f172a" : "#94a3b8"}
+                        strokeWidth="1.5"
+                        fill="none"
+                      />
+                      <text
+                        x={stCenterX}
+                        y={120}
+                        fill="#94a3b8"
+                        fontSize="7.5"
+                        fontFamily="sans-serif"
+                        textAnchor="middle"
+                      >
+                        سکوی شمالی
+                      </text>
+
+                      {/* Lower Platform Edge along Track 2 */}
+                      <path
+                        d={`M ${stCenterX - 70},274 L ${stCenterX + 70},274 M ${stCenterX - 70},270 L ${stCenterX - 70},278 M ${stCenterX + 70},270 L ${stCenterX + 70},278`}
+                        stroke={isSelected ? "#0f172a" : "#94a3b8"}
+                        strokeWidth="1.5"
+                        fill="none"
+                      />
+                      <text
+                        x={stCenterX}
+                        y={287}
+                        fill="#94a3b8"
+                        fontSize="7.5"
+                        fontFamily="sans-serif"
+                        textAnchor="middle"
+                      >
+                        سکوی جنوبی
+                      </text>
+                    </g>
                   )}
 
-                  {/* Vertical Guide Line to Station Info Card at y=405 (Clear of all tracks) */}
-                  <line
-                    x1={stCenterX}
-                    y1={308}
-                    x2={stCenterX}
-                    y2={405}
-                    stroke="#cbd5e1"
-                    strokeWidth="1"
-                    strokeDasharray="2,3"
-                  />
-                  <circle cx={stCenterX} cy={308} r="2" fill="#94a3b8" />
-
-                  {/* Station Info Badge Card placed at y=405 */}
-                  <g
-                    className="cursor-pointer"
-                    onClick={() => jumpToStation(st.id)}
-                  >
-                    <rect
-                      x={stCenterX - 80}
-                      y={405}
-                      width={160}
-                      height={36}
-                      fill="#ffffff"
-                      stroke={isSelected ? "#000000" : isTrainAtStation ? "#16a34a" : "#cbd5e1"}
-                      strokeWidth={isSelected ? "2" : isTrainAtStation ? "2" : "1"}
-                      rx="6"
-                      filter="drop-shadow(0 1px 3px rgba(0, 0, 0, 0.06))"
-                    />
-                    <text
-                      x={stCenterX}
-                      y={420}
-                      fill="#0f172a"
-                      fontSize="11"
-                      fontWeight="bold"
-                      fontFamily="monospace"
-                      textAnchor="middle"
-                      letterSpacing="0.5"
-                    >
-                      {st.pinglishName}
-                    </text>
-                    <text
-                      x={stCenterX}
-                      y={433}
-                      fill="#64748b"
-                      fontSize="8.5"
-                      fontFamily="monospace"
-                      textAnchor="middle"
-                    >
-                      {st.alias} | {st.chainage}
-                    </text>
-                  </g>
-
-                  {/* Signaling Equipment Room (SER / CER) Marker & Building */}
+                  {/* Signaling Equipment Room (SER / CER) Sleek Compact Badge */}
                   {st.signalingRoom && showSignalingRooms && (
                     <g
                       className="cursor-pointer group"
+                      onMouseDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation();
                         if (st.signalingRoom) {
@@ -1866,56 +1824,83 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                               { label: "تجهیزات مستقر", value: st.signalingRoom.equipment.join(" • ") },
                             ],
                           });
-                          setIsDrawerOpen(true);
-                          setDrawerTab("controls");
                         }
                       }}
                     >
-                      {/* Connection dashed line from room to track */}
-                      <line
-                        x1={stCenterX}
-                        y1={54}
-                        x2={stCenterX}
-                        y2={76}
-                        stroke={st.signalingRoom.type === "CER" ? "#a855f7" : "#10b981"}
-                        strokeWidth="1.2"
-                        strokeDasharray="2,2"
-                        opacity="0.8"
-                      />
-
-                      {/* Room box */}
                       <rect
-                        x={stCenterX - 60}
-                        y={32}
-                        width={120}
-                        height={24}
+                        x={stCenterX - 48}
+                        y={68}
+                        width={96}
+                        height={21}
                         fill={st.signalingRoom.type === "CER" ? "#3b0764" : "#064e3b"}
                         stroke={st.signalingRoom.type === "CER" ? "#c084fc" : "#34d399"}
                         strokeWidth="1.2"
-                        rx="5"
-                        filter="drop-shadow(0 2px 4px rgba(0,0,0,0.18))"
+                        rx="4"
+                        filter="drop-shadow(0 2px 4px rgba(0,0,0,0.12))"
                       />
-                      {/* Blinking server indicator light */}
                       <circle
-                        cx={stCenterX - 48}
-                        cy={44}
-                        r="3"
+                        cx={stCenterX - 38}
+                        cy={78.5}
+                        r="2.5"
                         fill={st.signalingRoom.type === "CER" ? "#f43f5e" : "#10b981"}
                       />
                       <text
-                        x={stCenterX + 6}
-                        y={48}
+                        x={stCenterX + 5}
+                        y={82}
                         fill="#ffffff"
-                        fontSize="9.5"
+                        fontSize="8.5"
                         fontFamily="monospace"
                         fontWeight="bold"
                         textAnchor="middle"
-                        letterSpacing="0.3"
                       >
                         {st.signalingRoom.type === "CER" ? "🏢 CER/OCC" : `🏢 ${st.signalingRoom.id}`}
                       </text>
                     </g>
                   )}
+
+                  {/* Clean Station Label & Pill Button below Line 2 (at y=304) */}
+                  <g
+                    className="cursor-pointer group select-none"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={() => jumpToStation(st.id)}
+                  >
+                    <rect
+                      x={stCenterX - 65}
+                      y={304}
+                      width={130}
+                      height={32}
+                      fill={isSelected ? "#0f172a" : "#ffffff"}
+                      stroke={isSelected ? "#000000" : hasTrain ? "#10b981" : "#e2e8f0"}
+                      strokeWidth={isSelected ? "1.8" : hasTrain ? "1.5" : "1"}
+                      rx="6"
+                      filter="drop-shadow(0 1px 3px rgba(0,0,0,0.06))"
+                    />
+
+                    {/* Persian Name */}
+                    <text
+                      x={stCenterX}
+                      y={318}
+                      fill={isSelected ? "#ffffff" : "#0f172a"}
+                      fontSize="10"
+                      fontFamily="sans-serif"
+                      fontWeight="bold"
+                      textAnchor="middle"
+                    >
+                      {st.id.toString().padStart(2, "0")} - {st.name}
+                    </text>
+
+                    {/* Pinglish & Chainage */}
+                    <text
+                      x={stCenterX}
+                      y={330}
+                      fill={isSelected ? "#94a3b8" : "#64748b"}
+                      fontSize="7.5"
+                      fontFamily="monospace"
+                      textAnchor="middle"
+                    >
+                      {st.pinglishName} • {st.platformType === "island" ? "جزیره‌ای" : "طرفین"}
+                    </text>
+                  </g>
                 </g>
               );
             })}
@@ -1973,6 +1958,8 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                 <g
                   key={`track-${track.id}`}
                   className="cursor-pointer group"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={() => {
                     handleTrackClick(track.id);
                     const station = STATIONS_DATABASE.find((s) => s.id === track.stationId);
@@ -2099,8 +2086,11 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                       <g
                         transform={`translate(${posX}, ${posY})`}
                         className="cursor-pointer group select-none transition-transform duration-500 ease-out"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation();
+                          focusOnTrain(trainId);
                           setSelectedElement({
                             type: "train",
                             id: trainId,
@@ -2135,6 +2125,22 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                           });
                         }}
                       >
+                        {/* Camera Focus Highlight Ring */}
+                        {selectedTrainId === trainId && (
+                          <rect
+                            x={isSouthbound ? -48 : -50}
+                            y="-20"
+                            width="98"
+                            height="40"
+                            fill="none"
+                            stroke="#10b981"
+                            strokeWidth="1.8"
+                            strokeDasharray="4,3"
+                            rx="6"
+                            className="pointer-events-none animate-pulse"
+                          />
+                        )}
+
                         {/* Projected Headlight Glow from the triangular tip */}
                         {isSouthbound ? (
                           <polygon
@@ -2294,6 +2300,8 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                 <g
                   key={`switch-${sw.id}`}
                   className="cursor-pointer group"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={() => {
                     toggleSwitch(sw.id);
                     const station = STATIONS_DATABASE.find((s) => s.id === sw.stationId);
@@ -2371,6 +2379,8 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                 <g
                   key={`signal-${sig.id}`}
                   className="cursor-pointer group"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={() => {
                     cycleSignal(sig.id);
                     const station = STATIONS_DATABASE.find((s) => s.id === sig.stationId);
@@ -2462,7 +2472,11 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
         </svg>
 
         {/* FLOATING ZOOM CONTROLLER (Bottom-Right, Powerful & Complete) */}
-        <div className="absolute bottom-4 end-4 flex items-center gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-2xl border border-neutral-200 shadow-lg z-20 text-neutral-800">
+        <div
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="absolute bottom-4 end-4 flex items-center gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-2xl border border-neutral-200 shadow-lg z-20 text-neutral-800"
+        >
           {/* Zoom Out Button */}
           <button
             type="button"
@@ -2541,7 +2555,11 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
 
         {/* SELECTED ELEMENT BOTTOM SHEET CARD */}
         {selectedElement && (
-          <div className="absolute bottom-16 start-4 end-4 sm:start-auto sm:end-4 sm:w-88 bg-white/98 border border-neutral-200 p-4 rounded-2xl shadow-2xl backdrop-blur-md z-30 space-y-3 animate-fadeIn">
+          <div
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            className="absolute bottom-16 start-4 end-4 sm:start-auto sm:end-4 sm:w-88 bg-white/98 border border-neutral-200 p-4 rounded-2xl shadow-2xl backdrop-blur-md z-30 space-y-3 animate-fadeIn"
+          >
             <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
               <div className="flex items-center gap-2 font-bold text-black text-xs">
                 <Activity className="w-4 h-4 text-emerald-600" />
@@ -2751,7 +2769,7 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                     : "text-neutral-600 hover:text-black"
                 }`}
               >
-                ایستگاه‌ها
+                نقشه و اطلس خط ۱
               </button>
               <button
                 type="button"
@@ -2987,88 +3005,279 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                 </div>
               )}
 
-              {/* TAB 4: 20-STATIONS DIRECTORY */}
+              {/* TAB 4: COMPREHENSIVE STATIONS, ISLANDS & SIGNALING ROOMS ATLAS */}
               {drawerTab === "stations" && (
-                <div className="space-y-2.5">
+                <div className="space-y-3">
+                  {/* Summary Metric Cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <div className="p-2.5 rounded-xl bg-neutral-50 border border-neutral-200">
+                      <span className="text-[10px] text-neutral-500 block">کل ایستگاه‌های خط ۱</span>
+                      <strong className="text-base font-extrabold text-neutral-900 font-mono">۲۰ ایستگاه</strong>
+                      <span className="text-[9.5px] text-neutral-400 block">طول خط: ۲۱.۱ کیلومتر</span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                      <span className="text-[10px] text-emerald-700 block">سکوهای جزیره‌ای</span>
+                      <strong className="text-base font-extrabold text-emerald-900 font-mono">۹ ایستگاه</strong>
+                      <span className="text-[9.5px] text-emerald-600 block">سکوی مرکزی میان دو خط</span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200">
+                      <span className="text-[10px] text-blue-700 block">سکوهای کناری (طرفین)</span>
+                      <strong className="text-base font-extrabold text-blue-900 font-mono">۱۱ ایستگاه</strong>
+                      <span className="text-[9.5px] text-blue-600 block">سکوی مجزا برای هر جهت</span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-purple-50/70 border border-purple-200">
+                      <span className="text-[10px] text-purple-700 block">اتاق‌های سیگنالینگ</span>
+                      <strong className="text-base font-extrabold text-purple-900 font-mono">۶ اتاق (SER/CER)</strong>
+                      <span className="text-[9.5px] text-purple-600 block">اینترلاکینگ EIL و LCP</span>
+                    </div>
+                  </div>
+
+                  {/* Filter Chips & Search Bar */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-1 border-t border-neutral-100">
+                    <div className="flex flex-wrap items-center gap-1 text-[11px] font-bold">
+                      <button
+                        type="button"
+                        onClick={() => setDrawerStationFilter("all")}
+                        className={`px-2.5 py-1 rounded-lg cursor-pointer transition-colors ${
+                          drawerStationFilter === "all"
+                            ? "bg-black text-white"
+                            : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
+                        }`}
+                      >
+                        همه (۲۰)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDrawerStationFilter("island")}
+                        className={`px-2.5 py-1 rounded-lg cursor-pointer transition-colors flex items-center gap-1 ${
+                          drawerStationFilter === "island"
+                            ? "bg-emerald-600 text-white"
+                            : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
+                        }`}
+                      >
+                        <span>جزیره‌ای (۹)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDrawerStationFilter("side")}
+                        className={`px-2.5 py-1 rounded-lg cursor-pointer transition-colors ${
+                          drawerStationFilter === "side"
+                            ? "bg-blue-600 text-white"
+                            : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
+                        }`}
+                      >
+                        کناری / طرفین (۱۱)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDrawerStationFilter("ser")}
+                        className={`px-2.5 py-1 rounded-lg cursor-pointer transition-colors flex items-center gap-1 ${
+                          drawerStationFilter === "ser"
+                            ? "bg-purple-600 text-white"
+                            : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
+                        }`}
+                      >
+                        <Server className="w-3 h-3" />
+                        <span>اتاق‌های SER/CER (۶)</span>
+                      </button>
+                    </div>
+
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 text-neutral-400 absolute start-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={drawerStationSearch}
+                        onChange={(e) => setDrawerStationSearch(e.target.value)}
+                        placeholder="جستجوی ایستگاه یا اتاق..."
+                        className="w-full sm:w-44 text-[11px] ps-8 pe-2.5 py-1 bg-neutral-100 border border-neutral-200 rounded-lg focus:outline-hidden focus:border-black"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Full Interactive Station Grid */}
+                  <div className="space-y-2 max-h-[46vh] overflow-y-auto pe-1">
+                    {STATIONS_DATABASE
+                      .filter((st) => {
+                        if (drawerStationFilter === "island") return st.platformType === "island";
+                        if (drawerStationFilter === "side") return st.platformType === "side";
+                        if (drawerStationFilter === "ser") return Boolean(st.signalingRoom);
+                        return true;
+                      })
+                      .filter((st) => {
+                        if (!drawerStationSearch.trim()) return true;
+                        const q = drawerStationSearch.toLowerCase().trim();
+                        return (
+                          st.name.includes(q) ||
+                          st.alias.includes(q) ||
+                          st.pinglishName.toLowerCase().includes(q) ||
+                          st.chainage.includes(q) ||
+                          (st.signalingRoom && st.signalingRoom.id.toLowerCase().includes(q))
+                        );
+                      })
+                      .map((st) => {
+                        const isSelected = st.id === selectedStationId;
+                        return (
+                          <div
+                            key={st.id}
+                            className={`p-3 rounded-xl border transition-all ${
+                              isSelected
+                                ? "bg-neutral-900 text-white border-neutral-900 shadow-md"
+                                : "bg-neutral-50/80 hover:bg-white border-neutral-200/90 text-neutral-900 shadow-2xs"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex items-center gap-2.5">
+                                <span
+                                  className={`w-7 h-7 rounded-lg font-mono font-bold text-xs flex items-center justify-center shrink-0 ${
+                                    isSelected
+                                      ? "bg-white text-black"
+                                      : "bg-neutral-200 text-neutral-800"
+                                  }`}
+                                >
+                                  {st.id.toString().padStart(2, "0")}
+                                </span>
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <h4 className="font-extrabold text-xs">
+                                      {st.fullName}
+                                    </h4>
+                                    <span
+                                      className={`text-[9.5px] px-2 py-0.5 rounded-full font-bold font-mono ${
+                                        st.platformType === "island"
+                                          ? isSelected
+                                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                            : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                          : isSelected
+                                          ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                                          : "bg-blue-100 text-blue-800 border border-blue-200"
+                                      }`}
+                                    >
+                                      {st.platformType === "island" ? "سکو جزیره‌ای" : "سکو طرفین"}
+                                    </span>
+
+                                    {st.signalingRoom && (
+                                      <span
+                                        className={`text-[9.5px] px-2 py-0.5 rounded-full font-mono font-bold flex items-center gap-1 ${
+                                          st.signalingRoom.type === "CER"
+                                            ? isSelected
+                                              ? "bg-purple-500/30 text-purple-200 border border-purple-400"
+                                              : "bg-purple-100 text-purple-900 border border-purple-300"
+                                            : isSelected
+                                            ? "bg-emerald-500/30 text-emerald-200 border border-emerald-400"
+                                            : "bg-emerald-100 text-emerald-900 border border-emerald-300"
+                                        }`}
+                                      >
+                                        <Server className="w-2.5 h-2.5" />
+                                        <span>اتاق {st.signalingRoom.id}</span>
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className={`flex items-center gap-2 text-[10px] mt-0.5 ${isSelected ? "text-neutral-400" : "text-neutral-500"}`}>
+                                    <span className="font-mono">{st.pinglishName}</span>
+                                    <span>•</span>
+                                    <span>کیلومتراژ: {st.chainage}</span>
+                                    <span>•</span>
+                                    <span>سقف سرعت: {st.speedLimit} km/h</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Direct Jump Button */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  jumpToStation(st.id);
+                                  setIsDrawerOpen(false);
+                                }}
+                                className={`px-2.5 py-1 rounded-lg text-[10.5px] font-bold cursor-pointer transition-colors shrink-0 flex items-center gap-1 ${
+                                  isSelected
+                                    ? "bg-white text-black hover:bg-neutral-200"
+                                    : "bg-black text-white hover:bg-neutral-800"
+                                }`}
+                                title="پیمایش و تمرکز دوربین نقشه بر روی این ایستگاه"
+                              >
+                                <MapPin className="w-3 h-3" />
+                                <span>پیمایش نقشه</span>
+                              </button>
+                            </div>
+
+                            {/* Infrastructure & Signaling Room Specs Details */}
+                            {st.signalingRoom && (
+                              <div
+                                className={`mt-2.5 pt-2 border-t text-[10.5px] space-y-1 rounded-lg p-2 ${
+                                  isSelected
+                                    ? "border-neutral-800 bg-neutral-950/60 text-neutral-300"
+                                    : "border-purple-200/60 bg-purple-50/60 text-neutral-800"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <strong className="font-bold flex items-center gap-1">
+                                    <Server className="w-3 h-3 text-purple-600" />
+                                    <span>{st.signalingRoom.title}</span>
+                                  </strong>
+                                  <span className="font-mono text-[10px] font-semibold text-purple-700 bg-purple-100/80 px-2 py-0.5 rounded">
+                                    {st.signalingRoom.rackCount} رک فنی • {st.signalingRoom.interlockingType}
+                                  </span>
+                                </div>
+                                <p className="text-[10px] leading-relaxed opacity-90">
+                                  {st.signalingRoom.description}
+                                </p>
+                                <div className="flex items-center gap-2 pt-0.5 text-[9.5px] opacity-80">
+                                  <span>پانل محلی LCP: <strong>{st.signalingRoom.lcpAvailable ? "مستقر و فعال ✓" : "ندارد"}</strong></span>
+                                  <span>•</span>
+                                  <span>تجهیزات: {st.signalingRoom.equipment.slice(0, 3).join(" • ")}</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Track Features Tags */}
+                            {(st.hasCrossover || st.hasDepotConnection || st.hasBranchingSwitch) && (
+                              <div className="mt-2 flex flex-wrap gap-1 text-[9.5px]">
+                                {st.hasCrossover && (
+                                  <span className={`px-2 py-0.5 rounded-full ${isSelected ? "bg-neutral-800 text-neutral-300" : "bg-neutral-200/70 text-neutral-700"}`}>
+                                    دارای کراس‌اور دوبل (Scissors X)
+                                  </span>
+                                )}
+                                {st.hasDepotConnection && (
+                                  <span className={`px-2 py-0.5 rounded-full ${isSelected ? "bg-amber-900/40 text-amber-300" : "bg-amber-100 text-amber-800"}`}>
+                                    اتصال خط به دپو شمال (کاوه)
+                                  </span>
+                                )}
+                                {st.hasBranchingSwitch && (
+                                  <span className={`px-2 py-0.5 rounded-full ${isSelected ? "bg-cyan-900/40 text-cyan-300" : "bg-cyan-100 text-cyan-800"}`}>
+                                    سوزن انشعابی خط ۲ تقاطعی
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+
+                  {/* Full-Screen Atlas Opener */}
                   {onOpenAtlas && (
-                    <div className="p-2.5 rounded-xl bg-cyan-50 border border-cyan-200 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-cyan-700" />
-                        <div>
-                          <span className="font-bold text-cyan-950 block">اطلس و نقشه مهندسی خط ۱</span>
-                          <span className="text-[10.5px] text-cyan-800">
-                            تفکیک ۹ سکوی جزیره‌ای و ۱۱ سکوی کناری، موقعیت اتاق‌های سیگنالینگ و مقایسه فنی
-                          </span>
-                        </div>
-                      </div>
+                    <div className="pt-2 border-t border-neutral-200 flex items-center justify-between">
+                      <span className="text-[11px] text-neutral-500">
+                        مشاهده اطلس کامل و ماتریس مشخصات مهندسی در صفحه اختصاصی:
+                      </span>
                       <button
                         type="button"
                         onClick={() => {
                           setIsDrawerOpen(false);
                           onOpenAtlas();
                         }}
-                        className="px-3 py-1.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white font-bold text-xs cursor-pointer transition-colors shrink-0"
+                        className="px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-black text-white font-bold text-xs cursor-pointer transition-colors flex items-center gap-1.5 shadow-2xs"
                       >
-                        باز کردن اطلس
+                        <Layers className="w-3.5 h-3.5 text-neutral-300" />
+                        <span>مشاهده صفحه اطلس خط ۱</span>
                       </button>
                     </div>
                   )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-80 overflow-y-auto">
-                    {STATIONS_DATABASE.map((st) => (
-                      <div
-                        key={st.id}
-                        onClick={() => {
-                          jumpToStation(st.id);
-                          setIsDrawerOpen(false);
-                        }}
-                        className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-colors ${
-                          st.id === selectedStationId
-                            ? "bg-neutral-900 text-white border-neutral-900"
-                            : "bg-neutral-50 hover:bg-neutral-100 border-neutral-200/80 text-neutral-800"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-xs">
-                            {st.id.toString().padStart(2, "0")}
-                          </span>
-                          <div>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <p className="font-bold text-xs">{st.fullName}</p>
-                              <span
-                                className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${
-                                  st.platformType === "island"
-                                    ? "bg-cyan-100 text-cyan-800 border border-cyan-200"
-                                    : "bg-amber-100 text-amber-800 border border-amber-200"
-                                }`}
-                              >
-                                {st.platformType === "island" ? "جزیره‌ای" : "کناری"}
-                              </span>
-                              {st.signalingRoom && (
-                                <span
-                                  className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold ${
-                                    st.signalingRoom.type === "CER"
-                                      ? "bg-purple-100 text-purple-800 border border-purple-200"
-                                      : "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                                  }`}
-                                >
-                                  {st.signalingRoom.id}
-                                </span>
-                              )}
-                            </div>
-                            <p
-                              className={`text-[10px] ${
-                                st.id === selectedStationId ? "text-neutral-300" : "text-neutral-500"
-                              }`}
-                            >
-                              {st.chainage} | {st.platformDescription}
-                            </p>
-                          </div>
-                        </div>
-                        <ChevronLeft className="w-4 h-4 opacity-60 shrink-0" />
-                      </div>
-                    ))}
-                  </div>
                 </div>
               )}
 
