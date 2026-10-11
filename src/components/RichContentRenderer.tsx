@@ -392,7 +392,7 @@ export const RichContentRenderer: React.FC<RichContentRendererProps> = ({
         blocks.push(
           <h3
             key={`h3-${lineIdx}`}
-            className="text-base md:text-lg font-bold text-neutral-900 mt-6 mb-3 flex items-center gap-2.5 border-r-4 border-black pr-3"
+            className="text-base md:text-lg font-bold text-neutral-900 mt-6 mb-3 flex items-center gap-2.5 border-r-4 border-black pr-3 break-words min-w-0"
           >
             {renderInline(headingText, `h3-${lineIdx}`)}
           </h3>
@@ -406,7 +406,7 @@ export const RichContentRenderer: React.FC<RichContentRendererProps> = ({
         blocks.push(
           <h4
             key={`h4-${lineIdx}`}
-            className="text-sm md:text-base font-bold text-neutral-800 mt-4 mb-2 flex items-center gap-2 border-r-2 border-neutral-400 pr-2"
+            className="text-sm md:text-base font-bold text-neutral-800 mt-4 mb-2 flex items-center gap-2 border-r-2 border-neutral-400 pr-2 break-words min-w-0"
           >
             {renderInline(headingText, `h4-${lineIdx}`)}
           </h4>
@@ -435,12 +435,12 @@ export const RichContentRenderer: React.FC<RichContentRendererProps> = ({
         blocks.push(
           <div
             key={`callout-${lineIdx}`}
-            className="my-4 p-4 rounded-xl bg-neutral-50 border-r-4 border-black text-neutral-800 text-xs md:text-sm flex items-start gap-3 shadow-xs"
+            className="my-4 p-4 rounded-xl bg-neutral-50 border-r-4 border-black text-neutral-800 text-xs md:text-sm flex items-start gap-3 shadow-xs break-words min-w-0"
           >
             <div className="p-1 rounded-md bg-neutral-200 text-neutral-800 shrink-0 mt-0.5">
               <Info className="w-4 h-4" />
             </div>
-            <div className="flex-1 leading-relaxed">
+            <div className="flex-1 leading-relaxed break-words min-w-0">
               {renderInline(noteText, `callout-${lineIdx}`)}
             </div>
           </div>
@@ -464,12 +464,12 @@ export const RichContentRenderer: React.FC<RichContentRendererProps> = ({
         blocks.push(
           <ul
             key={`ul-${lineIdx}`}
-            className="my-3 space-y-2 pe-1 text-sm md:text-base text-neutral-800"
+            className="my-3 space-y-2 pe-1 text-sm md:text-base text-neutral-800 min-w-0"
           >
             {listItems.map((item, itemIdx) => (
-              <li key={itemIdx} className="flex items-start gap-2.5 leading-relaxed">
+              <li key={itemIdx} className="flex items-start gap-2.5 leading-relaxed min-w-0 break-words">
                 <span className="w-1.5 h-1.5 rounded-full bg-neutral-800 shrink-0 mt-2.5" />
-                <div className="flex-1 text-justify">
+                <div className="flex-1 text-justify break-words min-w-0 [overflow-wrap:break-word]">
                   {renderInline(item, `ul-${lineIdx}-${itemIdx}`)}
                 </div>
               </li>
@@ -495,14 +495,14 @@ export const RichContentRenderer: React.FC<RichContentRendererProps> = ({
         blocks.push(
           <ol
             key={`ol-${lineIdx}`}
-            className="my-3 space-y-2 pe-1 text-sm md:text-base text-neutral-800"
+            className="my-3 space-y-2 pe-1 text-sm md:text-base text-neutral-800 min-w-0"
           >
             {listItems.map((item, itemIdx) => (
-              <li key={itemIdx} className="flex items-start gap-2.5 leading-relaxed">
+              <li key={itemIdx} className="flex items-start gap-2.5 leading-relaxed min-w-0 break-words">
                 <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-100 text-neutral-800 text-xs font-bold shrink-0 mt-1">
                   {itemIdx + 1}
                 </span>
-                <div className="flex-1 text-justify">
+                <div className="flex-1 text-justify break-words min-w-0 [overflow-wrap:break-word]">
                   {renderInline(item, `ol-${lineIdx}-${itemIdx}`)}
                 </div>
               </li>
@@ -517,7 +517,6 @@ export const RichContentRenderer: React.FC<RichContentRendererProps> = ({
       while (
         lineIdx < rawLines.length &&
         rawLines[lineIdx].trim().length > 0 &&
-        !rawLines[lineIdx].trim().startsWith("|") &&
         !rawLines[lineIdx].trim().startsWith("### ") &&
         !rawLines[lineIdx].trim().startsWith("#### ") &&
         !rawLines[lineIdx].trim().startsWith("- ") &&
@@ -537,7 +536,7 @@ export const RichContentRenderer: React.FC<RichContentRendererProps> = ({
         blocks.push(
           <p
             key={`p-${lineIdx}`}
-            className="text-sm md:text-base text-neutral-800 leading-relaxed md:leading-loose text-justify font-normal my-2.5"
+            className="text-sm md:text-base text-neutral-800 leading-relaxed md:leading-loose text-justify font-normal my-2.5 break-words min-w-0 [overflow-wrap:break-word]"
           >
             {renderInline(paragraphText, `p-${lineIdx}`)}
           </p>
@@ -549,7 +548,7 @@ export const RichContentRenderer: React.FC<RichContentRendererProps> = ({
   };
 
   return (
-    <div className="space-y-2 select-text leading-relaxed">
+    <div className="space-y-2 select-text leading-relaxed min-w-0 max-w-full break-words">
       {renderBlocks()}
     </div>
   );

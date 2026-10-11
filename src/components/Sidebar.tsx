@@ -19,6 +19,8 @@ import {
   MapPin,
   Layers,
   Server,
+  Award,
+  ShieldAlert,
 } from "lucide-react";
 import { sampleArticles, encyclopediaTerms } from "../data/encyclopediaData";
 import { MetroLogo } from "./MetroLogo";
@@ -38,6 +40,8 @@ interface SidebarProps {
   activeSectionId?: string;
   onOpenCtcSimulator?: () => void;
   onOpenStationAtlas?: (targetTab?: "racks" | "cards" | "table") => void;
+  onOpenRoadmap?: () => void;
+  onOpenTroubleshooting?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -54,6 +58,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeSectionId,
   onOpenCtcSimulator,
   onOpenStationAtlas,
+  onOpenRoadmap,
+  onOpenTroubleshooting,
 }) => {
   // Navigation tabs for clean separation of concerns
   const [activeTab, setActiveTab] = useState<"tree" | "tools" | "bookmarks" | "recent" | "terms">("tree");
@@ -208,118 +214,192 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
           {/* TAB: Tools (ابزارها) - Sleek, minimal and clean */}
           {activeTab === "tools" && (
-            <div className="space-y-3">
-              <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider px-1">
-                ابزارهای عملیاتی و شبیه‌سازها
+            <div className="space-y-4">
+              {/* Group 1: Operational Systems */}
+              <div className="space-y-2">
+                <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-1">
+                  سامانه‌های عملیاتی و شبیه‌سازها
+                </div>
+
+                {/* 1. CTC Simulator */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenCtcSimulator?.();
+                    onCloseMobile();
+                  }}
+                  className="w-full text-right p-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-start gap-3 group cursor-pointer shadow-2xs"
+                >
+                  <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors shrink-0 mt-0.5">
+                    <Play className="w-4 h-4 fill-current" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1 mb-0.5">
+                      <span className="text-xs font-bold text-neutral-900 group-hover:text-emerald-700 transition-colors">
+                        شبیه‌ساز ترافیک متمرکز (CTC)
+                      </span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    </div>
+                    <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
+                      کنترل آنلاین سوزن‌ها، چراغ‌های سیگنال، روتینگ و حرکت قطارهای خط ۱
+                    </p>
+                  </div>
+                </button>
+
+                {/* 2. Visual Rack Map */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenStationAtlas?.("racks");
+                    onCloseMobile();
+                  }}
+                  className="w-full text-right p-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-start gap-3 group cursor-pointer shadow-2xs"
+                >
+                  <div className="p-2 rounded-lg bg-sky-50 text-sky-600 group-hover:bg-sky-600 group-hover:text-white transition-colors shrink-0 mt-0.5">
+                    <Server className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1 mb-0.5">
+                      <span className="text-xs font-bold text-neutral-900 group-hover:text-sky-700 transition-colors">
+                        نقشه بصری رک‌ها (SER / CER)
+                      </span>
+                      <span className="text-[10px] font-mono text-neutral-400">42U</span>
+                    </div>
+                    <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
+                      ترسیم شماتیک و فیزیکی ۴۲ یونیت، بردهای سخت‌افزاری و پروتکل‌های شبکه
+                    </p>
+                  </div>
+                </button>
               </div>
 
-              {/* 1. CTC Simulator */}
-              <button
-                type="button"
-                onClick={() => {
-                  onOpenCtcSimulator?.();
-                  onCloseMobile();
-                }}
-                className="w-full text-right p-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-start gap-3 group cursor-pointer shadow-2xs"
-              >
-                <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors shrink-0 mt-0.5">
-                  <Play className="w-4 h-4 fill-current" />
+              {/* Group 2: Learning & Roles */}
+              <div className="space-y-2">
+                <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-1 pt-1">
+                  آموزش و ارتقای شغلی مهندسی
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-1 mb-0.5">
-                    <span className="text-xs font-bold text-neutral-900 group-hover:text-emerald-700 transition-colors">
-                      شبیه‌ساز ترافیک متمرکز (CTC)
-                    </span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                  </div>
-                  <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
-                    کنترل آنلاین سوزن‌ها، چراغ‌های سیگنال، روتینگ و حرکت قطارهای خط ۱
-                  </p>
-                </div>
-              </button>
 
-              {/* 2. Visual Rack Map */}
-              <button
-                type="button"
-                onClick={() => {
-                  onOpenStationAtlas?.("racks");
-                  onCloseMobile();
-                }}
-                className="w-full text-right p-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-start gap-3 group cursor-pointer shadow-2xs"
-              >
-                <div className="p-2 rounded-lg bg-sky-50 text-sky-600 group-hover:bg-sky-600 group-hover:text-white transition-colors shrink-0 mt-0.5">
-                  <Server className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-1 mb-0.5">
-                    <span className="text-xs font-bold text-neutral-900 group-hover:text-sky-700 transition-colors">
-                      نقشه بصری رک‌ها (SER / CER)
-                    </span>
-                    <span className="text-[10px] font-mono text-neutral-400">42U</span>
+                {/* 3. Career Roadmaps */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenRoadmap?.();
+                    onCloseMobile();
+                  }}
+                  className="w-full text-right p-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-start gap-3 group cursor-pointer shadow-2xs"
+                >
+                  <div className="p-2 rounded-lg bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors shrink-0 mt-0.5">
+                    <Award className="w-4 h-4" />
                   </div>
-                  <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
-                    ترسیم شماتیک و فیزیکی ۴۲ یونیت، بردهای سخت‌افزاری و پروتکل‌های شبکه
-                  </p>
-                </div>
-              </button>
-
-              <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider px-1 pt-2">
-                اطلس و ماتریس خط ۱
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1 mb-0.5">
+                      <span className="text-xs font-bold text-neutral-900 group-hover:text-amber-700 transition-colors">
+                        رودمپ‌های یادگیری و شایستگی شغلی
+                      </span>
+                      <span className="text-[10px] font-mono text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded font-semibold">
+                        ۴ نقش
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
+                      مسیر گام‌به‌گام کارشناس IT، سیگنالینگ، راهبر و تکنسین با امکان تیک زدن و آزمون
+                    </p>
+                  </div>
+                </button>
               </div>
 
-              {/* 3. Station Cards */}
-              <button
-                type="button"
-                onClick={() => {
-                  onOpenStationAtlas?.("cards");
-                  onCloseMobile();
-                }}
-                className="w-full text-right p-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-center justify-between gap-2 group cursor-pointer shadow-2xs"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="p-2 rounded-lg bg-neutral-100 text-neutral-700 group-hover:bg-black group-hover:text-white transition-colors shrink-0">
-                    <MapPin className="w-4 h-4" />
-                  </div>
-                  <div className="text-right truncate">
-                    <span className="text-xs font-bold text-neutral-900 block group-hover:text-black">
-                      کارت‌های ایستگاه خط ۱
-                    </span>
-                    <span className="text-[10px] text-neutral-500 block truncate">
-                      مشخصات سکوها و تجهیزات ۲۰ ایستگاه
-                    </span>
-                  </div>
+              {/* Group 3: RCA & Troubleshooting */}
+              <div className="space-y-2">
+                <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-1 pt-1">
+                  پایگاه دانش عیب‌یابی و حوادث
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 group-hover:bg-neutral-200">
-                  ۲۰ ایستگاه
-                </span>
-              </button>
 
-              {/* 4. Technical Matrix Table */}
-              <button
-                type="button"
-                onClick={() => {
-                  onOpenStationAtlas?.("table");
-                  onCloseMobile();
-                }}
-                className="w-full text-right p-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-center justify-between gap-2 group cursor-pointer shadow-2xs"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="p-2 rounded-lg bg-neutral-100 text-neutral-700 group-hover:bg-black group-hover:text-white transition-colors shrink-0">
-                    <Layers className="w-4 h-4" />
+                {/* 4. Troubleshooting RCA */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenTroubleshooting?.();
+                    onCloseMobile();
+                  }}
+                  className="w-full text-right p-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-start gap-3 group cursor-pointer shadow-2xs"
+                >
+                  <div className="p-2 rounded-lg bg-rose-50 text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-colors shrink-0 mt-0.5">
+                    <ShieldAlert className="w-4 h-4" />
                   </div>
-                  <div className="text-right truncate">
-                    <span className="text-xs font-bold text-neutral-900 block group-hover:text-black">
-                      ماتریس فنی و سوزن‌ها
-                    </span>
-                    <span className="text-[10px] text-neutral-500 block truncate">
-                      جدول کراس‌اورها، بلاک‌ها و فیلتر جستجو
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1 mb-0.5">
+                      <span className="text-xs font-bold text-neutral-900 group-hover:text-rose-700 transition-colors">
+                        دانشنامه تحلیل ریشه‌ای خطاها (RCA)
+                      </span>
+                      <span className="text-[10px] font-mono text-rose-700 bg-rose-50 px-1.5 py-0.2 rounded font-semibold">
+                        SIL 4
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
+                      تحلیل استدلالی خطاهای شبکه، سوزن‌ها، مدارهای راه، محور شمارها و رک‌ها
+                    </p>
                   </div>
+                </button>
+              </div>
+
+              {/* Group 4: Atlas & Matrix */}
+              <div className="space-y-2">
+                <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-1 pt-1">
+                  اطلس و ماتریس خط ۱
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 group-hover:bg-neutral-200">
-                  جدول داده
-                </span>
-              </button>
+
+                {/* 5. Station Cards */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenStationAtlas?.("cards");
+                    onCloseMobile();
+                  }}
+                  className="w-full text-right p-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-center justify-between gap-2 group cursor-pointer shadow-2xs"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="p-2 rounded-lg bg-neutral-100 text-neutral-700 group-hover:bg-black group-hover:text-white transition-colors shrink-0">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div className="text-right truncate">
+                      <span className="text-xs font-bold text-neutral-900 block group-hover:text-black">
+                        کارت‌های ایستگاه خط ۱
+                      </span>
+                      <span className="text-[10px] text-neutral-500 block truncate">
+                        مشخصات سکوها و تجهیزات ۲۰ ایستگاه
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 group-hover:bg-neutral-200">
+                    ۲۰ ایستگاه
+                  </span>
+                </button>
+
+                {/* 6. Technical Matrix Table */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenStationAtlas?.("table");
+                    onCloseMobile();
+                  }}
+                  className="w-full text-right p-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-center justify-between gap-2 group cursor-pointer shadow-2xs"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="p-2 rounded-lg bg-neutral-100 text-neutral-700 group-hover:bg-black group-hover:text-white transition-colors shrink-0">
+                      <Layers className="w-4 h-4" />
+                    </div>
+                    <div className="text-right truncate">
+                      <span className="text-xs font-bold text-neutral-900 block group-hover:text-black">
+                        ماتریس فنی و سوزن‌ها
+                      </span>
+                      <span className="text-[10px] text-neutral-500 block truncate">
+                        جدول کراس‌اورها، بلاک‌ها و فیلتر جستجو
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 group-hover:bg-neutral-200">
+                    جدول داده
+                  </span>
+                </button>
+              </div>
             </div>
           )}
 

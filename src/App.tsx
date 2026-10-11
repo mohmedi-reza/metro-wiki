@@ -11,6 +11,8 @@ import { ArticleAnnotation } from "./types/annotation";
 import { sampleArticles, encyclopediaTerms, Article } from "./data/encyclopediaData";
 import { CtcSimulator } from "./components/scada/CtcSimulator";
 import { StationAtlasPage } from "./components/StationAtlasPage";
+import { CareerRoadmapViewer } from "./components/CareerRoadmapViewer";
+import { TroubleshootingEncyclopedia } from "./components/TroubleshootingEncyclopedia";
 import {
   Search,
   Menu,
@@ -28,6 +30,8 @@ import {
   Radio,
   Layers,
   Play,
+  Award,
+  ShieldAlert,
 } from "lucide-react";
 import { cn } from "./lib/utils";
 
@@ -43,7 +47,7 @@ export default function App() {
   const [selectedTermModal, setSelectedTermModal] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [scrollProgress, setScrollProgress] = useState<number>(0);
-  const [activeView, setActiveView] = useState<"article" | "atlas" | "simulator">("article");
+  const [activeView, setActiveView] = useState<"article" | "atlas" | "simulator" | "roadmap" | "troubleshooting">("article");
   const [atlasInitialTab, setAtlasInitialTab] = useState<"racks" | "cards" | "table">("racks");
   const [simulatorInitialStationId, setSimulatorInitialStationId] = useState<number | undefined>(undefined);
 
@@ -391,13 +395,13 @@ export default function App() {
               </div>
             </div>
 
-            {/* Top View Mode Switcher: Encyclopedia | Atlas | Simulator */}
-            <nav className="hidden md:flex items-center gap-1 p-0.5 bg-neutral-100 rounded-lg text-xs font-semibold me-2">
+            {/* Top View Mode Switcher: Encyclopedia | Atlas | Simulator | Roadmap | Troubleshooting */}
+            <nav className="hidden lg:flex items-center gap-1 p-0.5 bg-neutral-100 rounded-lg text-xs font-semibold me-2">
               <button
                 type="button"
                 onClick={() => setActiveView("article")}
                 className={cn(
-                  "px-3 py-1 rounded-md transition-all cursor-pointer",
+                  "px-2.5 py-1 rounded-md transition-all cursor-pointer",
                   activeView === "article"
                     ? "bg-white text-black shadow-2xs font-bold"
                     : "text-neutral-500 hover:text-black"
@@ -412,15 +416,15 @@ export default function App() {
                   setActiveView("atlas");
                 }}
                 className={cn(
-                  "px-3 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5",
+                  "px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5",
                   activeView === "atlas"
                     ? "bg-white text-black shadow-2xs font-bold"
                     : "text-neutral-500 hover:text-black"
                 )}
               >
-                <span>نقشه رک‌ها و اطلس</span>
+                <span>رک‌ها و اطلس</span>
                 <span className="text-[9px] px-1 py-0.2 rounded-sm bg-neutral-200 text-neutral-800 font-mono">
-                  SER/CER
+                  42U
                 </span>
               </button>
               <button
@@ -429,10 +433,36 @@ export default function App() {
                   setSimulatorInitialStationId(undefined);
                   setActiveView("simulator");
                 }}
-                className="px-3 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 text-neutral-500 hover:text-black hover:bg-neutral-200/50"
+                className="px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 text-neutral-500 hover:text-black hover:bg-neutral-200/50"
               >
                 <Play className="w-3 h-3 fill-current text-neutral-700" />
                 <span>شبیه‌ساز CTC</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveView("roadmap")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5",
+                  activeView === "roadmap"
+                    ? "bg-white text-black shadow-2xs font-bold"
+                    : "text-neutral-500 hover:text-black hover:bg-neutral-200/50"
+                )}
+              >
+                <Award className="w-3 h-3 text-amber-600" />
+                <span>رودمپ‌های شغلی</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveView("troubleshooting")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5",
+                  activeView === "troubleshooting"
+                    ? "bg-white text-black shadow-2xs font-bold"
+                    : "text-neutral-500 hover:text-black hover:bg-neutral-200/50"
+                )}
+              >
+                <ShieldAlert className="w-3 h-3 text-rose-600" />
+                <span>عیب‌یابی و خطاها</span>
               </button>
             </nav>
           </div>
@@ -546,6 +576,8 @@ export default function App() {
               if (tab) setAtlasInitialTab(tab);
               setActiveView("atlas");
             }}
+            onOpenRoadmap={() => setActiveView("roadmap")}
+            onOpenTroubleshooting={() => setActiveView("troubleshooting")}
           />
 
           <StationAtlasPage
@@ -572,6 +604,132 @@ export default function App() {
               setActiveView("simulator");
             }}
           />
+        </div>
+      ) : activeView === "roadmap" ? (
+        <div className="flex-1 w-full flex overflow-hidden min-h-0">
+          <Sidebar
+            currentArticleId={currentArticleId}
+            onSelectArticle={(id) => {
+              setCurrentArticleId(id);
+              setActiveView("article");
+              scrollToTop();
+            }}
+            onSelectSection={(articleId, sectionId) => {
+              setCurrentArticleId(articleId);
+              setActiveView("article");
+              setTimeout(() => {
+                scrollToSection(sectionId);
+              }, 80);
+            }}
+            onSelectTerm={(term) => setSelectedTermModal(term)}
+            isOpenMobile={mobileMenuOpen}
+            onCloseMobile={() => setMobileMenuOpen(false)}
+            bookmarkedIds={bookmarkedIds}
+            onRemoveBookmark={(id) => {
+              setBookmarkedIds((prev) => prev.filter((item) => item !== id));
+            }}
+            recentlyViewedIds={recentlyViewedIds}
+            onClearRecentlyViewed={clearRecentlyViewed}
+            activeSectionId={activeSectionId}
+            onOpenCtcSimulator={() => {
+              setSimulatorInitialStationId(undefined);
+              setActiveView("simulator");
+            }}
+            onOpenStationAtlas={(tab) => {
+              if (tab) setAtlasInitialTab(tab);
+              setActiveView("atlas");
+            }}
+            onOpenRoadmap={() => setActiveView("roadmap")}
+            onOpenTroubleshooting={() => setActiveView("troubleshooting")}
+          />
+
+          <main className="flex-1 min-w-0 px-3 sm:px-6 md:px-8 py-6 md:py-8 h-full overflow-y-auto scroll-smooth">
+            <div className="max-w-4xl mx-auto">
+              <CareerRoadmapViewer
+                onNavigateToArticle={(artId, secId) => {
+                  setCurrentArticleId(artId);
+                  setActiveView("article");
+                  if (secId) {
+                    setTimeout(() => {
+                      const el = document.getElementById(secId);
+                      el?.scrollIntoView({ behavior: "smooth" });
+                    }, 150);
+                  } else {
+                    scrollToTop();
+                  }
+                }}
+                onOpenSimulator={() => {
+                  setSimulatorInitialStationId(undefined);
+                  setActiveView("simulator");
+                }}
+                onOpenRacksMap={(tab) => {
+                  if (tab) setAtlasInitialTab(tab);
+                  setActiveView("atlas");
+                }}
+              />
+            </div>
+          </main>
+        </div>
+      ) : activeView === "troubleshooting" ? (
+        <div className="flex-1 w-full flex overflow-hidden min-h-0">
+          <Sidebar
+            currentArticleId={currentArticleId}
+            onSelectArticle={(id) => {
+              setCurrentArticleId(id);
+              setActiveView("article");
+              scrollToTop();
+            }}
+            onSelectSection={(articleId, sectionId) => {
+              setCurrentArticleId(articleId);
+              setActiveView("article");
+              setTimeout(() => {
+                scrollToSection(sectionId);
+              }, 80);
+            }}
+            onSelectTerm={(term) => setSelectedTermModal(term)}
+            isOpenMobile={mobileMenuOpen}
+            onCloseMobile={() => setMobileMenuOpen(false)}
+            bookmarkedIds={bookmarkedIds}
+            onRemoveBookmark={(id) => {
+              setBookmarkedIds((prev) => prev.filter((item) => item !== id));
+            }}
+            recentlyViewedIds={recentlyViewedIds}
+            onClearRecentlyViewed={clearRecentlyViewed}
+            activeSectionId={activeSectionId}
+            onOpenCtcSimulator={() => {
+              setSimulatorInitialStationId(undefined);
+              setActiveView("simulator");
+            }}
+            onOpenStationAtlas={(tab) => {
+              if (tab) setAtlasInitialTab(tab);
+              setActiveView("atlas");
+            }}
+            onOpenRoadmap={() => setActiveView("roadmap")}
+            onOpenTroubleshooting={() => setActiveView("troubleshooting")}
+          />
+
+          <main className="flex-1 min-w-0 px-3 sm:px-6 md:px-8 py-6 md:py-8 h-full overflow-y-auto scroll-smooth">
+            <div className="max-w-4xl mx-auto">
+              <TroubleshootingEncyclopedia
+                onNavigateToArticle={(artId, secId) => {
+                  setCurrentArticleId(artId);
+                  setActiveView("article");
+                  if (secId) {
+                    setTimeout(() => {
+                      const el = document.getElementById(secId);
+                      el?.scrollIntoView({ behavior: "smooth" });
+                    }, 150);
+                  } else {
+                    scrollToTop();
+                  }
+                }}
+                onOpenRacksMap={(tab) => {
+                  if (tab) setAtlasInitialTab(tab);
+                  setActiveView("atlas");
+                }}
+              />
+            </div>
+          </main>
         </div>
       ) : (
         <div className="flex-1 w-full flex overflow-hidden min-h-0">
@@ -608,15 +766,17 @@ export default function App() {
               if (tab) setAtlasInitialTab(tab);
               setActiveView("atlas");
             }}
+            onOpenRoadmap={() => setActiveView("roadmap")}
+            onOpenTroubleshooting={() => setActiveView("troubleshooting")}
           />
 
         {/* Middle Main Article Area (Scrollable text content) */}
         <main
           ref={mainScrollRef}
           tabIndex={0}
-          className="flex-1 min-w-0 px-4 md:px-8 xl:px-12 py-8 md:py-10 h-full overflow-y-auto scroll-smooth focus:outline-hidden"
+          className="flex-1 min-w-0 px-3 sm:px-6 md:px-8 xl:px-12 py-6 md:py-10 h-full overflow-y-auto scroll-smooth focus:outline-hidden"
         >
-          <article className="max-w-3xl xl:max-w-4xl mx-auto space-y-8">
+          <article className="max-w-3xl xl:max-w-4xl mx-auto space-y-6 sm:space-y-8 min-w-0 break-words">
             {/* Breadcrumb & Metadata */}
             <div className="space-y-3 pb-6">
               <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
