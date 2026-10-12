@@ -21,6 +21,7 @@ import {
   Server,
   Award,
   ShieldAlert,
+  GraduationCap,
 } from "lucide-react";
 import { sampleArticles, encyclopediaTerms } from "../data/encyclopediaData";
 import { MetroLogo } from "./MetroLogo";
@@ -42,6 +43,8 @@ interface SidebarProps {
   onOpenStationAtlas?: (targetTab?: "racks" | "cards" | "table") => void;
   onOpenRoadmap?: () => void;
   onOpenTroubleshooting?: () => void;
+  onOpenQuiz?: () => void;
+  onOpenFlashcards?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -60,6 +63,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenStationAtlas,
   onOpenRoadmap,
   onOpenTroubleshooting,
+  onOpenQuiz,
+  onOpenFlashcards,
 }) => {
   // Navigation tabs for clean separation of concerns
   const [activeTab, setActiveTab] = useState<"tree" | "tools" | "bookmarks" | "recent" | "terms">("tree");
@@ -116,7 +121,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           "w-full lg:w-72 xl:w-80 shrink-0 bg-white z-[80] lg:z-10",
           "flex flex-col transition-transform duration-200 ease-in-out",
           "h-screen lg:h-full border-e border-neutral-100",
-          isOpenMobile ? "translate-x-0" : "translate-x-full lg:translate-x-0"
+          isOpenMobile
+            ? "translate-x-0 visible pointer-events-auto"
+            : "translate-x-full invisible lg:visible pointer-events-none lg:pointer-events-auto lg:translate-x-0"
         )}
       >
         {/* Full-width header on mobile to completely hide/replace the site header */}
@@ -275,8 +282,62 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* Group 2: Learning & Roles */}
               <div className="space-y-2">
                 <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-1 pt-1">
-                  آموزش و ارتقای شغلی مهندسی
+                  آموزش، آزمون و شایستگی مهندسی
                 </div>
+
+                {/* Exam: Professional Quiz */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenQuiz?.();
+                    onCloseMobile();
+                  }}
+                  className="w-full text-right p-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-start gap-3 group cursor-pointer shadow-2xs"
+                >
+                  <div className="p-2 rounded-lg bg-emerald-50 text-emerald-700 group-hover:bg-emerald-700 group-hover:text-white transition-colors shrink-0 mt-0.5">
+                    <GraduationCap className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1 mb-0.5">
+                      <span className="text-xs font-bold text-neutral-900 group-hover:text-emerald-700 transition-colors">
+                        آزمون تخصصی و صدور گواهینامه
+                      </span>
+                      <span className="text-[10px] font-mono text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded font-semibold">
+                        SIL 4
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
+                      شبیه‌ساز ارزیابی فنی استاندارد با کارنامه تحلیلی و گواهی دیجیتال مهندسی
+                    </p>
+                  </div>
+                </button>
+
+                {/* Flashcards: Spaced Repetition */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenFlashcards?.();
+                    onCloseMobile();
+                  }}
+                  className="w-full text-right p-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-all flex items-start gap-3 group cursor-pointer shadow-2xs"
+                >
+                  <div className="p-2 rounded-lg bg-indigo-50 text-indigo-700 group-hover:bg-indigo-700 group-hover:text-white transition-colors shrink-0 mt-0.5">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1 mb-0.5">
+                      <span className="text-xs font-bold text-neutral-900 group-hover:text-indigo-700 transition-colors">
+                        فلش‌کارت‌های تخصصی لایتنر
+                      </span>
+                      <span className="text-[10px] font-mono text-indigo-800 bg-indigo-50 px-1.5 py-0.2 rounded font-semibold">
+                        ۳ بعدی
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
+                      کارت‌های چرخشی ۳ بعدی، سیستم تکرار فاصله‌دار، واژگان کلیدی و نکات کارگاهی
+                    </p>
+                  </div>
+                </button>
 
                 {/* 3. Career Roadmaps */}
                 <button

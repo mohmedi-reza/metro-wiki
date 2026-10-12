@@ -13,6 +13,8 @@ import { CtcSimulator } from "./components/scada/CtcSimulator";
 import { StationAtlasPage } from "./components/StationAtlasPage";
 import { CareerRoadmapViewer } from "./components/CareerRoadmapViewer";
 import { TroubleshootingEncyclopedia } from "./components/TroubleshootingEncyclopedia";
+import { ProfessionalExam } from "./components/quiz/ProfessionalExam";
+import { ProfessionalFlashcards } from "./components/flashcards/ProfessionalFlashcards";
 import {
   Search,
   Menu,
@@ -32,6 +34,8 @@ import {
   Play,
   Award,
   ShieldAlert,
+  GraduationCap,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "./lib/utils";
 
@@ -47,7 +51,7 @@ export default function App() {
   const [selectedTermModal, setSelectedTermModal] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [scrollProgress, setScrollProgress] = useState<number>(0);
-  const [activeView, setActiveView] = useState<"article" | "atlas" | "simulator" | "roadmap" | "troubleshooting">("article");
+  const [activeView, setActiveView] = useState<"article" | "atlas" | "simulator" | "roadmap" | "troubleshooting" | "quiz" | "flashcards">("article");
   const [atlasInitialTab, setAtlasInitialTab] = useState<"racks" | "cards" | "table">("racks");
   const [simulatorInitialStationId, setSimulatorInitialStationId] = useState<number | undefined>(undefined);
 
@@ -464,6 +468,32 @@ export default function App() {
                 <ShieldAlert className="w-3 h-3 text-rose-600" />
                 <span>عیب‌یابی و خطاها</span>
               </button>
+              <button
+                type="button"
+                onClick={() => setActiveView("quiz")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5",
+                  activeView === "quiz"
+                    ? "bg-white text-black shadow-2xs font-bold"
+                    : "text-neutral-500 hover:text-black hover:bg-neutral-200/50"
+                )}
+              >
+                <GraduationCap className="w-3 h-3 text-emerald-600" />
+                <span>آزمون تخصصی</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveView("flashcards")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5",
+                  activeView === "flashcards"
+                    ? "bg-white text-black shadow-2xs font-bold"
+                    : "text-neutral-500 hover:text-black hover:bg-neutral-200/50"
+                )}
+              >
+                <Sparkles className="w-3 h-3 text-indigo-600" />
+                <span>فلش‌کارت‌ها</span>
+              </button>
             </nav>
           </div>
 
@@ -525,12 +555,95 @@ export default function App() {
               type="button"
               onClick={handlePrint}
               title="نسخه چاپی"
-              className="p-2 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-md transition-colors cursor-pointer"
+              className="hidden sm:flex p-2 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-md transition-colors cursor-pointer"
             >
               <Printer className="w-4 h-4" />
             </button>
           </div>
         </header>
+      )}
+
+      {/* Mobile/Tablet Subheader Navigation Strip (Visible on screens < lg) */}
+      {activeView !== "simulator" && (
+        <div className="lg:hidden bg-neutral-50/95 border-b border-neutral-200/80 px-3 py-1.5 overflow-x-auto scrollbar-none flex items-center gap-1.5 text-xs shrink-0 z-40">
+          <button
+            type="button"
+            onClick={() => setActiveView("article")}
+            className={cn(
+              "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer",
+              activeView === "article" ? "bg-black text-white shadow-xs" : "text-neutral-600 hover:text-black"
+            )}
+          >
+            دانشنامه
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveView("roadmap")}
+            className={cn(
+              "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer flex items-center gap-1",
+              activeView === "roadmap" ? "bg-black text-white shadow-xs" : "text-neutral-600 hover:text-black"
+            )}
+          >
+            <Award className="w-3.5 h-3.5 text-amber-500" />
+            <span>مسیر شایستگی</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveView("quiz")}
+            className={cn(
+              "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer flex items-center gap-1",
+              activeView === "quiz" ? "bg-black text-white shadow-xs" : "text-neutral-600 hover:text-black"
+            )}
+          >
+            <GraduationCap className="w-3.5 h-3.5 text-emerald-500" />
+            <span>مرکز آزمون‌ها</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveView("flashcards")}
+            className={cn(
+              "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer flex items-center gap-1",
+              activeView === "flashcards" ? "bg-black text-white shadow-xs" : "text-neutral-600 hover:text-black"
+            )}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+            <span>فلش‌کارت‌ها</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setAtlasInitialTab("racks");
+              setActiveView("atlas");
+            }}
+            className={cn(
+              "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer",
+              activeView === "atlas" ? "bg-black text-white shadow-xs" : "text-neutral-600 hover:text-black"
+            )}
+          >
+            رک‌ها و اطلس
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveView("troubleshooting")}
+            className={cn(
+              "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer",
+              activeView === "troubleshooting" ? "bg-black text-white shadow-xs" : "text-neutral-600 hover:text-black"
+            )}
+          >
+            عیب‌یابی
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSimulatorInitialStationId(undefined);
+              setActiveView("simulator");
+            }}
+            className="px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 text-neutral-600 hover:text-black cursor-pointer flex items-center gap-1"
+          >
+            <Play className="w-3 h-3 fill-current" />
+            <span>CTC</span>
+          </button>
+        </div>
       )}
 
       {/* Main Container: CTC Simulator, Station Atlas Page, or Technical Encyclopedia */}
@@ -578,6 +691,8 @@ export default function App() {
             }}
             onOpenRoadmap={() => setActiveView("roadmap")}
             onOpenTroubleshooting={() => setActiveView("troubleshooting")}
+            onOpenQuiz={() => setActiveView("quiz")}
+            onOpenFlashcards={() => setActiveView("flashcards")}
           />
 
           <StationAtlasPage
@@ -641,6 +756,8 @@ export default function App() {
             }}
             onOpenRoadmap={() => setActiveView("roadmap")}
             onOpenTroubleshooting={() => setActiveView("troubleshooting")}
+            onOpenQuiz={() => setActiveView("quiz")}
+            onOpenFlashcards={() => setActiveView("flashcards")}
           />
 
           <main className="flex-1 min-w-0 px-3 sm:px-6 md:px-8 py-6 md:py-8 h-full overflow-y-auto scroll-smooth">
@@ -706,6 +823,8 @@ export default function App() {
             }}
             onOpenRoadmap={() => setActiveView("roadmap")}
             onOpenTroubleshooting={() => setActiveView("troubleshooting")}
+            onOpenQuiz={() => setActiveView("quiz")}
+            onOpenFlashcards={() => setActiveView("flashcards")}
           />
 
           <main className="flex-1 min-w-0 px-3 sm:px-6 md:px-8 py-6 md:py-8 h-full overflow-y-auto scroll-smooth">
@@ -729,6 +848,108 @@ export default function App() {
                 }}
               />
             </div>
+          </main>
+        </div>
+      ) : activeView === "quiz" ? (
+        <div className="flex-1 w-full flex overflow-hidden min-h-0">
+          <Sidebar
+            currentArticleId={currentArticleId}
+            onSelectArticle={(id) => {
+              setCurrentArticleId(id);
+              setActiveView("article");
+              scrollToTop();
+            }}
+            onSelectSection={(articleId, sectionId) => {
+              setCurrentArticleId(articleId);
+              setActiveView("article");
+              setTimeout(() => {
+                scrollToSection(sectionId);
+              }, 80);
+            }}
+            onSelectTerm={(term) => setSelectedTermModal(term)}
+            isOpenMobile={mobileMenuOpen}
+            onCloseMobile={() => setMobileMenuOpen(false)}
+            bookmarkedIds={bookmarkedIds}
+            onRemoveBookmark={(id) => {
+              setBookmarkedIds((prev) => prev.filter((item) => item !== id));
+            }}
+            recentlyViewedIds={recentlyViewedIds}
+            onClearRecentlyViewed={clearRecentlyViewed}
+            activeSectionId={activeSectionId}
+            onOpenCtcSimulator={() => {
+              setSimulatorInitialStationId(undefined);
+              setActiveView("simulator");
+            }}
+            onOpenStationAtlas={(tab) => {
+              if (tab) setAtlasInitialTab(tab);
+              setActiveView("atlas");
+            }}
+            onOpenRoadmap={() => setActiveView("roadmap")}
+            onOpenTroubleshooting={() => setActiveView("troubleshooting")}
+            onOpenQuiz={() => setActiveView("quiz")}
+            onOpenFlashcards={() => setActiveView("flashcards")}
+          />
+
+          <main className="flex-1 min-w-0 px-3 sm:px-6 md:px-8 py-6 md:py-8 h-full overflow-y-auto scroll-smooth">
+            <ProfessionalExam
+              onNavigateToArticle={(artId) => {
+                setCurrentArticleId(artId);
+                setActiveView("article");
+                scrollToTop();
+              }}
+              onBack={() => setActiveView("article")}
+            />
+          </main>
+        </div>
+      ) : activeView === "flashcards" ? (
+        <div className="flex-1 w-full flex overflow-hidden min-h-0">
+          <Sidebar
+            currentArticleId={currentArticleId}
+            onSelectArticle={(id) => {
+              setCurrentArticleId(id);
+              setActiveView("article");
+              scrollToTop();
+            }}
+            onSelectSection={(articleId, sectionId) => {
+              setCurrentArticleId(articleId);
+              setActiveView("article");
+              setTimeout(() => {
+                scrollToSection(sectionId);
+              }, 80);
+            }}
+            onSelectTerm={(term) => setSelectedTermModal(term)}
+            isOpenMobile={mobileMenuOpen}
+            onCloseMobile={() => setMobileMenuOpen(false)}
+            bookmarkedIds={bookmarkedIds}
+            onRemoveBookmark={(id) => {
+              setBookmarkedIds((prev) => prev.filter((item) => item !== id));
+            }}
+            recentlyViewedIds={recentlyViewedIds}
+            onClearRecentlyViewed={clearRecentlyViewed}
+            activeSectionId={activeSectionId}
+            onOpenCtcSimulator={() => {
+              setSimulatorInitialStationId(undefined);
+              setActiveView("simulator");
+            }}
+            onOpenStationAtlas={(tab) => {
+              if (tab) setAtlasInitialTab(tab);
+              setActiveView("atlas");
+            }}
+            onOpenRoadmap={() => setActiveView("roadmap")}
+            onOpenTroubleshooting={() => setActiveView("troubleshooting")}
+            onOpenQuiz={() => setActiveView("quiz")}
+            onOpenFlashcards={() => setActiveView("flashcards")}
+          />
+
+          <main className="flex-1 min-w-0 px-3 sm:px-6 md:px-8 py-6 md:py-8 h-full overflow-y-auto scroll-smooth">
+            <ProfessionalFlashcards
+              onNavigateToArticle={(artId) => {
+                setCurrentArticleId(artId);
+                setActiveView("article");
+                scrollToTop();
+              }}
+              onBack={() => setActiveView("article")}
+            />
           </main>
         </div>
       ) : (
@@ -768,6 +989,8 @@ export default function App() {
             }}
             onOpenRoadmap={() => setActiveView("roadmap")}
             onOpenTroubleshooting={() => setActiveView("troubleshooting")}
+            onOpenQuiz={() => setActiveView("quiz")}
+            onOpenFlashcards={() => setActiveView("flashcards")}
           />
 
         {/* Middle Main Article Area (Scrollable text content) */}
@@ -901,9 +1124,9 @@ export default function App() {
       {selectionRange && (
         <div
           id="floating-highlight-trigger"
-          className="fixed z-50 transform -translate-x-1/2 -translate-y-full mb-2 bg-black text-white rounded-md shadow-2xl px-3 py-1.5 flex items-center gap-2 border border-neutral-700 animate-in fade-in zoom-in-95 duration-100"
+          className="fixed z-50 transform -translate-x-1/2 -translate-y-full mb-2 bg-black text-white rounded-md shadow-2xl px-3 py-1.5 flex items-center gap-2 border border-neutral-700 animate-in fade-in zoom-in-95 duration-100 max-w-[90vw]"
           style={{
-            left: `${selectionRange.x}px`,
+            left: `${Math.max(75, Math.min(window.innerWidth - 75, selectionRange.x))}px`,
             top: `${selectionRange.y}px`,
           }}
         >
@@ -942,10 +1165,19 @@ export default function App() {
         onClose={() => setIsSearchOpen(false)}
         onSelectArticle={(id) => {
           setCurrentArticleId(id);
+          setActiveView("article");
           scrollToTop();
         }}
         onSelectTerm={(term) => {
           setSelectedTermModal(term);
+        }}
+        onOpenQuiz={() => {
+          setActiveView("quiz");
+          setIsSearchOpen(false);
+        }}
+        onOpenFlashcards={() => {
+          setActiveView("flashcards");
+          setIsSearchOpen(false);
         }}
       />
 

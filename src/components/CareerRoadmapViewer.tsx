@@ -393,20 +393,22 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
       </div>
 
       {/* 2. Top-Level Main Section Switcher: 📚 آموزش کامل | 🎓 آزمون و سنجش کامل */}
-      <div className="bg-neutral-100 p-1.5 rounded-2xl flex items-center gap-1.5 shadow-2xs">
+      <div className="bg-neutral-100 p-1.5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 shadow-2xs">
         <button
           type="button"
           onClick={() => setMainTab("learning")}
           className={cn(
-            "flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2.5 cursor-pointer",
+            "flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-between sm:justify-center gap-2 cursor-pointer",
             mainTab === "learning"
               ? "bg-white text-neutral-900 shadow-sm"
               : "text-neutral-600 hover:text-black hover:bg-neutral-200/50"
           )}
         >
-          <BookOpen className="w-4 h-4" />
-          <span>بخش آموزش و مسیر شایستگی‌ها</span>
-          <span className="text-[11px] font-mono px-2 py-0.2 rounded-md bg-neutral-100 text-neutral-700 font-semibold">
+          <div className="flex items-center gap-2 truncate">
+            <BookOpen className="w-4 h-4 shrink-0" />
+            <span className="truncate">مسیر شایستگی و آموزش</span>
+          </div>
+          <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-700 font-semibold shrink-0">
             {activeRoadmap.steps.length} گام درسی
           </span>
         </button>
@@ -420,17 +422,19 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
             }
           }}
           className={cn(
-            "flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2.5 cursor-pointer",
+            "flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-between sm:justify-center gap-2 cursor-pointer",
             mainTab === "exam"
               ? "bg-black text-white shadow-sm"
               : "text-neutral-600 hover:text-black hover:bg-neutral-200/50"
           )}
         >
-          <Award className="w-4 h-4 text-amber-400" />
-          <span>مرکز آزمون و سنجش صلاحیت حرفه‌ای</span>
+          <div className="flex items-center gap-2 truncate">
+            <Award className="w-4 h-4 text-amber-400 shrink-0" />
+            <span className="truncate">مرکز آزمون‌های تخصصی</span>
+          </div>
           <span
             className={cn(
-              "text-[11px] font-mono px-2 py-0.2 rounded-md font-semibold",
+              "text-[11px] font-mono px-2 py-0.5 rounded-md font-semibold shrink-0",
               mainTab === "exam" ? "bg-white/20 text-neutral-200" : "bg-neutral-200 text-neutral-800"
             )}
           >
@@ -578,7 +582,7 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
               </div>
 
               {/* Progress Circular & Metrics Badge */}
-              <div className="flex items-center gap-4 bg-neutral-50 border border-neutral-200/80 rounded-2xl p-4 shrink-0">
+              <div className="flex items-center justify-between sm:justify-start gap-4 bg-neutral-50 border border-neutral-200/80 rounded-2xl p-4 w-full sm:w-auto shrink-0">
                 <div className="text-right space-y-0.5">
                   <span className="text-[11px] font-semibold text-neutral-500 block">پیشرفت دوره:</span>
                   <div className="flex items-baseline gap-1.5">
@@ -620,8 +624,8 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
                 )}
               </div>
 
-              {/* Stepper Progress Visual Bar */}
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              {/* Stepper Progress Visual Bar - Scrollable on mobile, grid on desktop */}
+              <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 overflow-x-auto pb-1.5 sm:pb-0 scrollbar-none">
                 {activeRoadmap.steps.map((st, sIdx) => {
                   const isDone = currentCompletedList.includes(st.id);
                   const isCurrent = expandedStepId === st.id;
@@ -632,7 +636,7 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
                       type="button"
                       onClick={() => setExpandedStepId(st.id)}
                       className={cn(
-                        "p-2.5 rounded-xl border text-right transition-all flex items-center gap-2 cursor-pointer text-xs",
+                        "p-2.5 rounded-xl border text-right transition-all flex items-center gap-2 cursor-pointer text-xs shrink-0 sm:shrink min-w-[200px] sm:min-w-0",
                         isCurrent
                           ? "bg-neutral-900 text-white border-neutral-900 shadow-2xs"
                           : isDone
@@ -683,7 +687,7 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
                     const el = document.getElementById(`step-card-${nextIncompleteStep.id}`);
                     el?.scrollIntoView({ behavior: "smooth", block: "center" });
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold transition-colors cursor-pointer shrink-0 text-center"
+                  className="w-full sm:w-auto px-3.5 py-2 sm:py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold transition-colors cursor-pointer shrink-0 text-center"
                 >
                   رفتن به این گام
                 </button>
@@ -888,13 +892,13 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
                       </div>
 
                       {/* Actions Toolbar */}
-                      <div className="p-3.5 bg-white rounded-2xl border border-neutral-200 flex flex-wrap items-center justify-between gap-3">
-                        <div className="flex items-center gap-2 flex-wrap">
+                      <div className="p-3.5 bg-white rounded-2xl border border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                           {step.articleId && (
                             <button
                               type="button"
                               onClick={() => onNavigateToArticle?.(step.articleId!, step.sectionId)}
-                              className="px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-black text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                              className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 rounded-xl bg-neutral-900 hover:bg-black text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                             >
                               <BookOpen className="w-3.5 h-3.5" />
                               <span>مطالعه مقاله مرجع در دانشنامه</span>
@@ -905,7 +909,7 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
                             <button
                               type="button"
                               onClick={() => onOpenRacksMap?.("racks")}
-                              className="px-3.5 py-2 rounded-xl bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                              className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 rounded-xl bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                             >
                               <Server className="w-3.5 h-3.5" />
                               <span>{step.actionLabel || "مشاهده رک در اطلس"}</span>
@@ -916,7 +920,7 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
                             <button
                               type="button"
                               onClick={() => onOpenSimulator?.()}
-                              className="px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                              className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                             >
                               <Play className="w-3.5 h-3.5 fill-current" />
                               <span>{step.actionLabel || "اجرای سناریو در شبیه‌ساز"}</span>
@@ -929,7 +933,7 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
                           type="button"
                           onClick={() => handleCompleteAndNext(step)}
                           className={cn(
-                            "px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-2xs",
+                            "w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs shrink-0",
                             isDone
                               ? "bg-neutral-100 text-neutral-800 hover:bg-neutral-200 border border-neutral-200"
                               : "bg-emerald-600 hover:bg-emerald-700 text-white"
@@ -1084,7 +1088,7 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
                 </div>
 
                 {/* Countdown Timer Widget */}
-                <div className="flex items-center gap-3 self-end sm:self-auto">
+                <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
                   <div
                     className={cn(
                       "px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-2 border",
@@ -1336,7 +1340,7 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-neutral-100">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                          <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
                           <span className="text-xs font-mono font-bold tracking-widest text-neutral-500 uppercase">
                             METRO RAIL SYSTEM • SIL 4 CERTIFICATION
                           </span>
@@ -1346,7 +1350,7 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
                         </h4>
                       </div>
 
-                      <div className="text-left font-mono text-xs text-neutral-400">
+                      <div className="text-right sm:text-left font-mono text-xs text-neutral-400">
                         <div>کد گواهی: CERT-{activeRoleExam.roleId.toUpperCase()}-{Date.now().toString().slice(-6)}</div>
                         <div>تاریخ صدور: {new Date().toLocaleDateString("fa-IR")}</div>
                       </div>

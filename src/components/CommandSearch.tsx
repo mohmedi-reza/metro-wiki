@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { Search, X, BookOpen, Layers, ArrowLeft } from "lucide-react";
+import { Search, X, BookOpen, Layers, ArrowLeft, GraduationCap, Sparkles } from "lucide-react";
 import { encyclopediaTerms, sampleArticles, Article, TermDefinition } from "../data/encyclopediaData";
 import { cn } from "../lib/utils";
 
@@ -9,6 +9,8 @@ interface CommandSearchProps {
   onClose: () => void;
   onSelectArticle: (articleId: string) => void;
   onSelectTerm: (termKey: string) => void;
+  onOpenQuiz?: () => void;
+  onOpenFlashcards?: () => void;
 }
 
 export const CommandSearch: React.FC<CommandSearchProps> = ({
@@ -16,6 +18,8 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
   onClose,
   onSelectArticle,
   onSelectTerm,
+  onOpenQuiz,
+  onOpenFlashcards,
 }) => {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -92,6 +96,53 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
 
             {/* Search Results List */}
             <div className="max-h-[60vh] overflow-y-auto p-2 divide-y divide-neutral-100">
+              {/* Quick Tools Launchers */}
+              <div className="py-2">
+                <div className="px-3 py-1 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-neutral-500" />
+                  <span>سامانه‌ها و آزمون‌های تخصصی</span>
+                </div>
+                <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-1.5 px-1">
+                  {onOpenQuiz && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onOpenQuiz();
+                        onClose();
+                      }}
+                      className="text-right p-2.5 rounded-lg border border-neutral-200 hover:border-black hover:bg-neutral-50 transition-all flex items-center gap-2.5 cursor-pointer group"
+                    >
+                      <div className="p-1.5 rounded-md bg-emerald-50 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                        <GraduationCap className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-black">آزمون جامع مهندسی</div>
+                        <div className="text-[10px] text-neutral-500">ارزیابی و گواهی SIL 4</div>
+                      </div>
+                    </button>
+                  )}
+
+                  {onOpenFlashcards && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onOpenFlashcards();
+                        onClose();
+                      }}
+                      className="text-right p-2.5 rounded-lg border border-neutral-200 hover:border-black hover:bg-neutral-50 transition-all flex items-center gap-2.5 cursor-pointer group"
+                    >
+                      <div className="p-1.5 rounded-md bg-indigo-50 text-indigo-700 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <Sparkles className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-black">فلش‌کارت‌های لایتنر</div>
+                        <div className="text-[10px] text-neutral-500">کارت‌های ۳ بعدی و مرور</div>
+                      </div>
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {/* Articles Group */}
               {filteredArticles.length > 0 && (
                 <div className="py-2">
