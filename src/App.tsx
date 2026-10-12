@@ -366,13 +366,13 @@ export default function App() {
 
       {/* Top Header with subtle border - Only rendered in Encyclopedia and Atlas mode */}
       {activeView !== "simulator" && (
-        <header className="sticky top-0 z-50 h-14 shrink-0 bg-white/95 backdrop-blur-xs px-4 lg:px-8 flex items-center justify-between border-b border-neutral-100">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-50 h-14 shrink-0 bg-white/95 backdrop-blur-xs px-2.5 sm:px-4 lg:px-8 flex items-center justify-between border-b border-neutral-100 gap-1 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Mobile hamburger menu */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 text-black hover:bg-neutral-100 rounded-md transition-colors"
+              className="lg:hidden p-2 text-black hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
               aria-label="تغییر وضعیت منو"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -498,20 +498,20 @@ export default function App() {
           </div>
 
           {/* Global Search Bar (Minimal Trigger) */}
-          <div className="flex-1 max-w-sm sm:max-w-md mx-2 sm:mx-4">
+          <div className="flex-1 min-w-0 max-w-xs sm:max-w-md mx-1 sm:mx-4">
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
               className={cn(
-                "w-full flex items-center justify-between px-3 py-1.5",
-                "bg-neutral-100/70 hover:bg-neutral-100 rounded-md",
+                "w-full flex items-center justify-between px-2.5 sm:px-3 py-1.5",
+                "bg-neutral-100/70 hover:bg-neutral-100 rounded-lg",
                 "text-neutral-500 text-xs transition-all duration-150 cursor-pointer"
               )}
               title="جستجو (Cmd+K)"
             >
-              <div className="flex items-center gap-2 truncate">
+              <div className="flex items-center gap-1.5 sm:gap-2 truncate">
                 <Search className="w-4 h-4 text-neutral-400 shrink-0" />
-                <span className="truncate">جستجو...</span>
+                <span className="truncate">جستجو در دانشنامه...</span>
               </div>
               <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono text-neutral-400 bg-white rounded shrink-0 shadow-2xs">
                 ⌘K
@@ -520,14 +520,14 @@ export default function App() {
           </div>
 
           {/* Minimal Action Icons */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
             {/* Bookmark Icon Button in Top Header */}
             <button
               type="button"
               onClick={() => toggleBookmark(currentArticle.id)}
               title={isCurrentBookmarked ? "حذف از مقالات نشان‌شده" : "نشان کردن مقاله"}
               className={cn(
-                "p-2 rounded-md transition-colors cursor-pointer",
+                "p-2 rounded-lg transition-colors cursor-pointer",
                 isCurrentBookmarked
                   ? "bg-black text-white hover:bg-neutral-800"
                   : "text-neutral-600 hover:text-black hover:bg-neutral-100"
@@ -546,7 +546,7 @@ export default function App() {
               type="button"
               onClick={handleShare}
               title="کپی پیوند"
-              className="p-2 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-md transition-colors cursor-pointer"
+              className="p-2 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
             >
               {copiedLink ? <Check className="w-4 h-4 text-black" /> : <Share2 className="w-4 h-4" />}
             </button>
@@ -555,7 +555,7 @@ export default function App() {
               type="button"
               onClick={handlePrint}
               title="نسخه چاپی"
-              className="hidden sm:flex p-2 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-md transition-colors cursor-pointer"
+              className="hidden sm:flex p-2 text-neutral-600 hover:text-black hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
             >
               <Printer className="w-4 h-4" />
             </button>
@@ -565,13 +565,13 @@ export default function App() {
 
       {/* Mobile/Tablet Subheader Navigation Strip (Visible on screens < lg) */}
       {activeView !== "simulator" && (
-        <div className="lg:hidden bg-neutral-50/95 border-b border-neutral-200/80 px-3 py-1.5 overflow-x-auto scrollbar-none flex items-center gap-1.5 text-xs shrink-0 z-40">
+        <div className="lg:hidden bg-neutral-50/95 border-b border-neutral-200/80 px-2.5 py-1.5 overflow-x-auto scrollbar-none flex items-center gap-1.5 text-xs shrink-0 z-40 touch-pan-x">
           <button
             type="button"
             onClick={() => setActiveView("article")}
             className={cn(
               "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer",
-              activeView === "article" ? "bg-black text-white shadow-xs" : "text-neutral-600 hover:text-black"
+              activeView === "article" ? "bg-black text-white shadow-xs font-bold" : "text-neutral-600 hover:text-black hover:bg-neutral-200/50"
             )}
           >
             دانشنامه
@@ -581,7 +581,7 @@ export default function App() {
             onClick={() => setActiveView("roadmap")}
             className={cn(
               "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer flex items-center gap-1",
-              activeView === "roadmap" ? "bg-black text-white shadow-xs" : "text-neutral-600 hover:text-black"
+              activeView === "roadmap" ? "bg-black text-white shadow-xs font-bold" : "text-neutral-600 hover:text-black hover:bg-neutral-200/50"
             )}
           >
             <Award className="w-3.5 h-3.5 text-amber-500" />
@@ -592,7 +592,7 @@ export default function App() {
             onClick={() => setActiveView("quiz")}
             className={cn(
               "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer flex items-center gap-1",
-              activeView === "quiz" ? "bg-black text-white shadow-xs" : "text-neutral-600 hover:text-black"
+              activeView === "quiz" ? "bg-black text-white shadow-xs font-bold" : "text-neutral-600 hover:text-black hover:bg-neutral-200/50"
             )}
           >
             <GraduationCap className="w-3.5 h-3.5 text-emerald-500" />
@@ -603,7 +603,7 @@ export default function App() {
             onClick={() => setActiveView("flashcards")}
             className={cn(
               "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer flex items-center gap-1",
-              activeView === "flashcards" ? "bg-black text-white shadow-xs" : "text-neutral-600 hover:text-black"
+              activeView === "flashcards" ? "bg-black text-white shadow-xs font-bold" : "text-neutral-600 hover:text-black hover:bg-neutral-200/50"
             )}
           >
             <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
@@ -616,21 +616,23 @@ export default function App() {
               setActiveView("atlas");
             }}
             className={cn(
-              "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer",
-              activeView === "atlas" ? "bg-black text-white shadow-xs" : "text-neutral-600 hover:text-black"
+              "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer flex items-center gap-1",
+              activeView === "atlas" ? "bg-black text-white shadow-xs font-bold" : "text-neutral-600 hover:text-black hover:bg-neutral-200/50"
             )}
           >
-            رک‌ها و اطلس
+            <Layers className="w-3.5 h-3.5 text-sky-500" />
+            <span>رک‌ها و اطلس</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveView("troubleshooting")}
             className={cn(
-              "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer",
-              activeView === "troubleshooting" ? "bg-black text-white shadow-xs" : "text-neutral-600 hover:text-black"
+              "px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 cursor-pointer flex items-center gap-1",
+              activeView === "troubleshooting" ? "bg-black text-white shadow-xs font-bold" : "text-neutral-600 hover:text-black hover:bg-neutral-200/50"
             )}
           >
-            عیب‌یابی
+            <ShieldAlert className="w-3.5 h-3.5 text-rose-500" />
+            <span>عیب‌یابی</span>
           </button>
           <button
             type="button"
@@ -638,10 +640,10 @@ export default function App() {
               setSimulatorInitialStationId(undefined);
               setActiveView("simulator");
             }}
-            className="px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 text-neutral-600 hover:text-black cursor-pointer flex items-center gap-1"
+            className="px-3 py-1.5 rounded-lg whitespace-nowrap transition-all font-semibold shrink-0 text-neutral-600 hover:text-black hover:bg-neutral-200/50 cursor-pointer flex items-center gap-1"
           >
-            <Play className="w-3 h-3 fill-current" />
-            <span>CTC</span>
+            <Play className="w-3 h-3 fill-current text-emerald-600" />
+            <span>شبیه‌ساز CTC</span>
           </button>
         </div>
       )}

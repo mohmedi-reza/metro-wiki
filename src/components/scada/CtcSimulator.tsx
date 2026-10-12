@@ -1382,9 +1382,9 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
           Right: Metro Logo + Title + Status Pill
           Left: Tools & Drawer Trigger + Exit Button
           ========================================================================= */}
-      <header className="h-13 sm:h-14 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 px-3 sm:px-6 flex items-center justify-between shrink-0 z-30 shadow-2xs gap-2">
+      <header className="h-13 sm:h-14 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 px-2.5 sm:px-6 flex items-center justify-between shrink-0 z-30 shadow-2xs gap-1.5 sm:gap-2">
         {/* Right side (RTL): Brand and Title */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink">
+        <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 shrink">
           <MetroLogo size="sm" />
           <div className="flex items-center gap-1.5 min-w-0">
             <h1 className="text-xs sm:text-sm font-extrabold text-neutral-900 tracking-tight leading-none truncate">
@@ -1398,7 +1398,7 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
         </div>
 
         {/* Left side (RTL): Navigation, Tools & Exit Buttons */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* Quick Scenario Play / Step */}
           <div className="flex items-center gap-0.5 sm:gap-1 bg-neutral-100 p-0.5 sm:p-1 rounded-xl border border-neutral-200/70">
             <button
@@ -1434,18 +1434,18 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                 setIsDrawerOpen(true);
               }
             }}
-            className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-neutral-200 shrink-0"
+            className="p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-neutral-200 shrink-0"
             title="مشاهده نقشه و اطلس کامل ایستگاه‌ها، سکوهای جزیره‌ای و اتاق‌های سیگنالینگ"
           >
             <Layers className="w-3.5 h-3.5 text-neutral-600 shrink-0" />
-            <span className="hidden md:inline">صفحه اطلس ایستگاه‌ها</span>
+            <span className="hidden md:inline">اطلس ایستگاه‌ها</span>
           </button>
 
           {/* Toggle SER / CER Rooms Layer on Map */}
           <button
             type="button"
             onClick={() => setShowSignalingRooms(!showSignalingRooms)}
-            className={`px-2.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border shrink-0 ${
+            className={`hidden sm:flex px-2.5 py-1.5 rounded-xl font-bold text-xs items-center gap-1.5 transition-colors cursor-pointer border shrink-0 ${
               showSignalingRooms
                 ? "bg-emerald-50 text-emerald-800 border-emerald-300 shadow-2xs"
                 : "bg-neutral-100 text-neutral-600 border-neutral-200 hover:bg-neutral-200"
@@ -1460,11 +1460,11 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
           <button
             type="button"
             onClick={() => setIsDrawerOpen(true)}
-            className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-neutral-200/70"
+            className="p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-neutral-200/70"
             title="منوی ابزارهای پیشرفته، لاگ‌ها، وضعیت اینترلاکینگ و راهنمای جزوات"
           >
             <Sliders className="w-3.5 h-3.5 shrink-0" />
-            <span className="hidden sm:inline">ابزارها و منو</span>
+            <span className="hidden sm:inline">ابزارها</span>
             {eventLogs.length > 0 && (
               <span className="w-4 h-4 rounded-full bg-black text-white text-[9px] flex items-center justify-center font-mono font-bold shrink-0">
                 {eventLogs.length > 99 ? "99+" : eventLogs.length}
@@ -1478,10 +1478,10 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
               type="button"
               onClick={onClose}
               title="خروج از شبیه‌ساز و بازگشت به دانشنامه"
-              className="px-2.5 sm:px-3 py-1.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs active:scale-95 shrink-0"
+              className="px-2 sm:px-3 py-1.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer shadow-xs active:scale-95 shrink-0"
             >
               <X className="w-3.5 h-3.5" />
-              <span>خروج</span>
+              <span className="hidden xs:inline">خروج</span>
             </button>
           )}
         </div>
@@ -1510,43 +1510,45 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
         <div
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
-          className="absolute top-2.5 inset-x-0 mx-auto w-fit max-w-[96vw] z-20 pointer-events-auto flex flex-col items-center gap-1.5"
+          className="absolute top-2 inset-x-0 mx-auto w-fit max-w-[96vw] z-20 pointer-events-auto flex flex-col items-center gap-1.5"
         >
           {/* Main Station & Train Focus Pill */}
-          <div className="flex items-center gap-1 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full border border-neutral-200/90 shadow-md text-xs text-neutral-800">
-            <button
-              type="button"
-              onClick={() => stepStation("prev")}
-              title="ایستگاه قبلی"
-              className="p-1 hover:bg-neutral-100 rounded-full cursor-pointer transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+          <div className="flex flex-wrap items-center justify-center gap-1 bg-white/95 backdrop-blur-md px-2 sm:px-2.5 py-1 rounded-2xl sm:rounded-full border border-neutral-200/90 shadow-md text-xs text-neutral-800 max-w-full">
+            <div className="flex items-center gap-0.5">
+              <button
+                type="button"
+                onClick={() => stepStation("prev")}
+                title="ایستگاه قبلی"
+                className="p-1 hover:bg-neutral-100 rounded-full cursor-pointer transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setIsStationModalOpen(true)}
-              className="px-2 py-0.5 font-bold text-neutral-900 flex items-center gap-1.5 cursor-pointer max-w-[160px] sm:max-w-[220px] truncate"
-              title="مشاهده و انتخاب از میان ۲۰ ایستگاه خط ۱"
-            >
-              <MapPin className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
-              <span className="truncate">{activeStation.alias} - {activeStation.pinglishName}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-            </button>
+              <button
+                type="button"
+                onClick={() => setIsStationModalOpen(true)}
+                className="px-1.5 sm:px-2 py-0.5 font-bold text-neutral-900 flex items-center gap-1 cursor-pointer max-w-[130px] sm:max-w-[200px] truncate"
+                title="مشاهده و انتخاب از میان ۲۰ ایستگاه خط ۱"
+              >
+                <MapPin className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                <span className="truncate">{activeStation.alias} - {activeStation.pinglishName}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+              </button>
 
-            <button
-              type="button"
-              onClick={() => stepStation("next")}
-              title="ایستگاه بعدی"
-              className="p-1 hover:bg-neutral-100 rounded-full cursor-pointer transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
+              <button
+                type="button"
+                onClick={() => stepStation("next")}
+                title="ایستگاه بعدی"
+                className="p-1 hover:bg-neutral-100 rounded-full cursor-pointer transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
 
-            <div className="h-4 w-px bg-neutral-200 mx-1" />
+            <div className="hidden xs:block h-4 w-px bg-neutral-200 mx-0.5" />
 
             {/* Quick Train Focus Selectors with Follow Indicator */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-wrap justify-center">
               <span className="text-[10px] text-neutral-400 hidden sm:inline ms-0.5">قطار:</span>
               {trains.map((t) => {
                 const isSelected = selectedTrainId === t.id;
@@ -1555,7 +1557,7 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                     key={t.id}
                     type="button"
                     onClick={() => focusOnTrain(t.id)}
-                    className={`px-2 py-0.5 rounded-full font-bold text-[10.5px] cursor-pointer transition-all flex items-center gap-0.5 ${
+                    className={`px-1.5 sm:px-2 py-0.5 rounded-full font-bold text-[10px] sm:text-[10.5px] cursor-pointer transition-all flex items-center gap-0.5 ${
                       isSelected
                         ? "bg-black text-white shadow-2xs scale-105"
                         : "bg-neutral-100 hover:bg-neutral-200 text-neutral-800"
@@ -1578,7 +1580,7 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                     focusOnTrain(selectedTrainId);
                   }
                 }}
-                className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] cursor-pointer transition-colors flex items-center gap-1 ms-1 ${
+                className={`px-2 py-0.5 rounded-full font-bold text-[10px] cursor-pointer transition-colors flex items-center gap-1 ms-0.5 ${
                   isFollowingTrain
                     ? "bg-emerald-600 text-white shadow-2xs"
                     : "bg-neutral-100 hover:bg-neutral-200 text-neutral-600"
@@ -1586,19 +1588,19 @@ export const CtcSimulator: React.FC<CtcSimulatorProps> = ({
                 title={isFollowingTrain ? "دوربین به صورت خودکار قطار را دنبال می‌کند (کلیک برای غیرفعال‌سازی)" : "فعال‌سازی تعقیب خودکار دوربین روی نقشه"}
               >
                 <LocateFixed className={`w-3 h-3 shrink-0 ${isFollowingTrain ? "animate-pulse" : ""}`} />
-                <span>{isFollowingTrain ? "تعقیب زنده ✓" : "تعقیب آزاد"}</span>
+                <span>{isFollowingTrain ? "تعقیب ✓" : "تعقیب"}</span>
               </button>
             </div>
           </div>
 
           {/* Rapid 20-Station Line Scrubber: Tap or drag anywhere to traverse instantly */}
           <div
-            className="flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-1 rounded-full border border-neutral-200 shadow-xs text-[10px] text-neutral-600 select-none"
+            className="flex items-center gap-1.5 sm:gap-2 bg-white/95 backdrop-blur-md px-2.5 sm:px-3.5 py-1 rounded-full border border-neutral-200 shadow-xs text-[9px] sm:text-[10px] text-neutral-600 select-none max-w-[94vw]"
             title="نوار پیمایش خط ۱: روی هر نقطه یا ایستگاه کلیک کنید تا نقشه فوراً به آنجا پیمایش کند"
           >
             <span className="font-bold text-neutral-600 shrink-0">قدس (۰۱)</span>
             <div
-              className="relative w-44 xs:w-56 sm:w-80 h-3 flex items-center cursor-pointer"
+              className="relative w-28 xs:w-44 sm:w-80 h-3 flex items-center cursor-pointer max-w-[calc(90vw-120px)]"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const clickRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
