@@ -15,6 +15,7 @@ import {
   Activity,
   CheckCircle2,
   ExternalLink,
+  Filter,
 } from "lucide-react";
 import {
   STATIONS_DATABASE,
@@ -23,6 +24,14 @@ import {
 import { StationData } from "../types/scada";
 import { cn } from "../lib/utils";
 import { SignalingRoomRacksMap } from "./signaling/SignalingRoomRacksMap";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 
 interface StationAtlasPageProps {
   initialTab?: AtlasPrimaryTab;
@@ -243,61 +252,45 @@ export const StationAtlasPage: React.FC<StationAtlasPageProps> = ({
 
       {/* Main Content Area */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Primary View Switcher Tabs Bar */}
-        <div className="p-1.5 rounded-2xl bg-neutral-100 border border-neutral-200 flex flex-col md:flex-row items-stretch md:items-center gap-1.5 shadow-2xs">
-          <button
-            type="button"
-            onClick={() => setActiveTab("racks")}
-            className={cn(
-              "flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer text-center",
-              activeTab === "racks"
-                ? "bg-neutral-900 text-white shadow-2xs"
-                : "text-neutral-600 hover:text-black hover:bg-neutral-200/60"
-            )}
+        {/* Primary View Switcher Shadcn Tabs Bar */}
+        <div className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={(val) => setActiveTab(val as AtlasPrimaryTab)}
+            className="w-full"
           >
-            <Server className="w-4 h-4 shrink-0" />
-            <span className="truncate">نقشه رک‌ها و سالن‌های علائم (SER / CER)</span>
-            <span className={cn(
-              "text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0",
-              activeTab === "racks" ? "bg-neutral-800 text-neutral-200" : "bg-neutral-200 text-neutral-700"
-            )}>
-              ۸ اتاق
-            </span>
-          </button>
+            <TabsList className="w-full grid grid-cols-1 md:grid-cols-3 h-auto p-1 bg-neutral-100 rounded-2xl gap-1 border border-neutral-200 shadow-2xs">
+              <TabsTrigger
+                value="racks"
+                className="py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 truncate cursor-pointer transition-all"
+              >
+                <Server className="w-4 h-4 shrink-0 text-sky-600" />
+                <span className="truncate">نقشه رک‌ها و سالن‌های علائم (SER / CER)</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0 bg-neutral-200/80 text-neutral-700">
+                  ۸ اتاق
+                </span>
+              </TabsTrigger>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("cards")}
-            className={cn(
-              "flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer text-center",
-              activeTab === "cards"
-                ? "bg-neutral-900 text-white shadow-2xs"
-                : "text-neutral-600 hover:text-black hover:bg-neutral-200/60"
-            )}
-          >
-            <LayoutGrid className="w-4 h-4 shrink-0" />
-            <span className="truncate">مشخصات فنی ایستگاه‌ها</span>
-            <span className={cn(
-              "text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0",
-              activeTab === "cards" ? "bg-neutral-800 text-neutral-200" : "bg-neutral-200 text-neutral-700"
-            )}>
-              ۲۰ ایستگاه
-            </span>
-          </button>
+              <TabsTrigger
+                value="cards"
+                className="py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 truncate cursor-pointer transition-all"
+              >
+                <LayoutGrid className="w-4 h-4 shrink-0 text-emerald-600" />
+                <span className="truncate">مشخصات فنی ایستگاه‌ها</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0 bg-neutral-200/80 text-neutral-700">
+                  ۲۰ ایستگاه
+                </span>
+              </TabsTrigger>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("table")}
-            className={cn(
-              "flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer text-center",
-              activeTab === "table"
-                ? "bg-neutral-900 text-white shadow-2xs"
-                : "text-neutral-600 hover:text-black hover:bg-neutral-200/60"
-            )}
-          >
-            <TableIcon className="w-4 h-4 shrink-0" />
-            <span className="truncate">ماتریس ساختار خط ۱</span>
-          </button>
+              <TabsTrigger
+                value="table"
+                className="py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 truncate cursor-pointer transition-all"
+              >
+                <TableIcon className="w-4 h-4 shrink-0 text-amber-600" />
+                <span className="truncate">ماتریس ساختار خط ۱</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
         {/* Section 1: Interactive Linear Schematic Line Strip (shown on stations and table views) */}
@@ -437,8 +430,8 @@ export const StationAtlasPage: React.FC<StationAtlasPageProps> = ({
         ========================================================================= */}
         {activeTab === "cards" && (
           <section className="space-y-6">
-            {/* Controls Bar: Search & Filter Tabs */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-2 border-b border-neutral-100">
+            {/* Minimal Shadcn Controls Bar: Search & Select Filter */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-3 border-b border-neutral-100">
               {/* Search Input */}
               <div className="relative flex-1 max-w-md">
                 <Search className="w-4 h-4 text-neutral-400 absolute start-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -447,7 +440,7 @@ export const StationAtlasPage: React.FC<StationAtlasPageProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="جستجوی نام ایستگاه، کد، کیلومتراژ یا اتاق SER..."
-                  className="w-full ps-9 pe-4 py-2 bg-neutral-50 hover:bg-neutral-100/70 focus:bg-white border border-neutral-200 focus:border-neutral-400 rounded-lg text-xs transition-colors focus:outline-hidden"
+                  className="w-full ps-9 pe-8 py-2 bg-neutral-50 hover:bg-neutral-100/70 focus:bg-white border border-neutral-200 focus:border-neutral-900 rounded-xl text-xs transition-colors focus:outline-hidden"
                 />
                 {searchQuery && (
                   <button
@@ -455,64 +448,71 @@ export const StationAtlasPage: React.FC<StationAtlasPageProps> = ({
                     onClick={() => setSearchQuery("")}
                     className="absolute end-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-black text-xs px-1 cursor-pointer"
                   >
-                    پاک کردن
+                    ×
                   </button>
                 )}
               </div>
 
-              {/* Platform Filter Buttons */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => setPlatformFilter("all")}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer",
-                    platformFilter === "all"
-                      ? "bg-neutral-900 text-white"
-                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-black"
-                  )}
-                >
-                  همه ({STATIONS_DATABASE.length})
-                </button>
+              {/* Minimal Platform Filter Dropdown & Clear Filter */}
+              <div className="flex items-center gap-2 self-stretch sm:self-auto">
+                <div className="w-60 shrink-0">
+                  <Select
+                    value={platformFilter}
+                    onValueChange={(val) => setPlatformFilter(val as any)}
+                  >
+                    <SelectTrigger className="h-9 bg-neutral-50/70 hover:bg-neutral-100 rounded-xl">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <Filter className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                        <span className="truncate">
+                          {platformFilter === "all"
+                            ? `همه ایستگاه‌ها (${STATIONS_DATABASE.length})`
+                            : platformFilter === "island"
+                            ? `سکوهای جزیره‌ای (${islandCount})`
+                            : platformFilter === "side"
+                            ? `سکوهای کناری (${sideCount})`
+                            : `دارای اتاق SER (${serCount})`}
+                        </span>
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        <div className="flex items-center justify-between gap-3 w-full text-right">
+                          <span>همه ایستگاه‌ها</span>
+                          <span className="text-[10px] text-neutral-500 font-mono">({STATIONS_DATABASE.length})</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="island">
+                        <div className="flex items-center justify-between gap-3 w-full text-right">
+                          <span>سکوهای جزیره‌ای (Island)</span>
+                          <span className="text-[10px] text-neutral-500 font-mono">({islandCount})</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="side">
+                        <div className="flex items-center justify-between gap-3 w-full text-right">
+                          <span>سکوهای کناری (Side)</span>
+                          <span className="text-[10px] text-neutral-500 font-mono">({sideCount})</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="ser">
+                        <div className="flex items-center justify-between gap-3 w-full text-right">
+                          <span>دارای سالن سیگنالینگ (SER)</span>
+                          <span className="text-[10px] text-neutral-500 font-mono">({serCount})</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                <button
-                  type="button"
-                  onClick={() => setPlatformFilter("island")}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer",
-                    platformFilter === "island"
-                      ? "bg-neutral-900 text-white"
-                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-black"
-                  )}
-                >
-                  سکوهای جزیره‌ای ({islandCount})
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPlatformFilter("side")}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer",
-                    platformFilter === "side"
-                      ? "bg-neutral-900 text-white"
-                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-black"
-                  )}
-                >
-                  سکوهای کناری ({sideCount})
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPlatformFilter("ser")}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer",
-                    platformFilter === "ser"
-                      ? "bg-neutral-900 text-white"
-                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-black"
-                  )}
-                >
-                  دارای اتاق SER ({serCount})
-                </button>
+                {platformFilter !== "all" && (
+                  <button
+                    type="button"
+                    onClick={() => setPlatformFilter("all")}
+                    className="h-9 px-2.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-100 text-neutral-600 text-xs transition-colors shrink-0 cursor-pointer"
+                    title="حذف فیلتر"
+                  >
+                    حذف فیلتر
+                  </button>
+                )}
               </div>
             </div>
 
