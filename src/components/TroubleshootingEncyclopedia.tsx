@@ -123,46 +123,34 @@ export const TroubleshootingEncyclopedia: React.FC<TroubleshootingEncyclopediaPr
 
   return (
     <div className={cn("space-y-6 pb-16 min-w-0 max-w-full overflow-hidden", className)}>
-      {/* 1. Header Banner & Metric Overview */}
-      <div className="bg-white rounded-3xl border border-neutral-200 p-5 sm:p-7 shadow-xs space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1.5 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-xl bg-rose-600 text-white">
-                <ShieldAlert className="w-4 h-4" />
-              </span>
-              <h2 className="text-lg sm:text-xl font-extrabold text-neutral-900 truncate">
-                دانشنامه جامع عیب‌یابی، استدلال خطاها و تحلیل ریشه‌ای (RCA)
-              </h2>
-            </div>
-            <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed max-w-3xl break-words">
-              مرجع استدلالی تمام خطاهای شبکه، سیگنالینگ، اینترلاکینگ، رک‌های سالن علائم، مدارهای راه و ناوگان خط ۱ بر مبنای استانداردهای CENELEC EN 50126/EN 50128/EN 50129 و منطق Fail-Safe.
-            </p>
+      {/* 1. Header & Overview */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-neutral-100">
+        <div>
+          <div className="flex items-center gap-1.5 text-xs text-neutral-400 mb-1">
+            <span>دانشنامه مهندسی</span>
+            <span>/</span>
+            <span className="text-neutral-600 font-medium">عیب‌یابی و حوادث</span>
           </div>
-
-          {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 shrink-0 text-center">
-            <div className="p-3 rounded-2xl bg-neutral-50 border border-neutral-200/80">
-              <span className="text-[11px] text-neutral-500 font-semibold block">کل سناریوها</span>
-              <span className="text-lg font-black font-mono text-neutral-900">
-                {TROUBLESHOOTING_INCIDENTS_DATABASE.length}
-              </span>
-            </div>
-            <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200/80">
-              <span className="text-[11px] text-rose-700 font-semibold block">سطح بحرانی</span>
-              <span className="text-lg font-black font-mono text-rose-900">
-                {TROUBLESHOOTING_INCIDENTS_DATABASE.filter((i) => i.severity.includes("بحرانی")).length}
-              </span>
-            </div>
-            <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200/80 col-span-2 sm:col-span-1">
-              <span className="text-[11px] text-emerald-700 font-semibold block">استاندارد ایمنی</span>
-              <span className="text-xs font-black font-mono text-emerald-900 block mt-1">SIL 4 Fail-Safe</span>
-            </div>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-black tracking-tight">
+            دانشنامه تحلیل ریشه‌ای خطاها (RCA)
+          </h1>
+          <p className="text-xs sm:text-sm text-neutral-500 mt-1 max-w-2xl leading-relaxed">
+            مرجع تحلیلی خطاهای شبکه، سوزن‌ها، مدارهای راه، محور شمارها و اینترلاکینگ بر مبنای استاندارد CENELEC
+          </p>
         </div>
 
-        {/* Search Bar & Filters */}
-        <div className="space-y-3 pt-2 border-t border-neutral-100">
+        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 text-xs">
+          <span className="px-2.5 py-1 rounded-lg bg-neutral-100 text-neutral-700 font-mono font-bold">
+            {TROUBLESHOOTING_INCIDENTS_DATABASE.length} سناریو
+          </span>
+          <span className="px-2.5 py-1 rounded-lg bg-black text-white font-mono font-bold">
+            SIL 4 Fail-Safe
+          </span>
+        </div>
+      </div>
+
+      {/* Search Bar & Filters */}
+      <div className="space-y-2.5">
           <div className="relative">
             <Search className="w-4 h-4 text-neutral-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
@@ -208,30 +196,29 @@ export const TroubleshootingEncyclopedia: React.FC<TroubleshootingEncyclopediaPr
             })}
           </div>
 
-          {/* Severity Filter Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
-            <span className="text-[11px] font-semibold text-neutral-400 shrink-0 ml-1">شدت:</span>
-            {SEVERITIES.map((sev) => {
-              const isSelected = selectedSeverity === sev.value;
-              return (
-                <button
-                  key={sev.value}
-                  type="button"
-                  onClick={() => setSelectedSeverity(sev.value)}
-                  className={cn(
-                    "px-2.5 py-1 rounded-lg font-medium transition-all shrink-0 cursor-pointer text-[11px] border",
-                    isSelected
-                      ? "bg-black text-white border-black font-bold"
-                      : "bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100"
-                  )}
-                >
-                  {sev.label}
-                </button>
-              );
-            })}
+            {/* Severity Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+              <span className="text-[11px] font-semibold text-neutral-400 shrink-0 ml-1">شدت:</span>
+              {SEVERITIES.map((sev) => {
+                const isSelected = selectedSeverity === sev.value;
+                return (
+                  <button
+                    key={sev.value}
+                    type="button"
+                    onClick={() => setSelectedSeverity(sev.value)}
+                    className={cn(
+                      "px-2.5 py-1 rounded-lg font-medium transition-all shrink-0 cursor-pointer text-[11px] border",
+                      isSelected
+                        ? "bg-black text-white border-black font-bold"
+                        : "bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100"
+                    )}
+                  >
+                    {sev.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </div>
 
       {/* 2. Results Header */}
       <div className="flex items-center justify-between text-xs text-neutral-500 px-1">

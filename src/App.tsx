@@ -15,6 +15,7 @@ import { CareerRoadmapViewer } from "./components/CareerRoadmapViewer";
 import { TroubleshootingEncyclopedia } from "./components/TroubleshootingEncyclopedia";
 import { ProfessionalExam } from "./components/quiz/ProfessionalExam";
 import { ProfessionalFlashcards } from "./components/flashcards/ProfessionalFlashcards";
+import { AuthLoginScreen } from "./components/AuthLoginScreen";
 import {
   Search,
   Menu,
@@ -25,6 +26,7 @@ import {
   Calendar,
   Clock,
   ChevronLeft,
+  ChevronRight,
   BookmarkCheck,
   Bookmark,
   Check,
@@ -36,14 +38,44 @@ import {
   ShieldAlert,
   GraduationCap,
   Sparkles,
+  LogOut,
+  UserCheck,
 } from "lucide-react";
 import { cn } from "./lib/utils";
 
+const AUTH_STORAGE_KEY = "daneshnamak_auth_user";
 const BOOKMARKS_STORAGE_KEY = "daneshnamak_saved_articles";
 const RECENTLY_VIEWED_STORAGE_KEY = "daneshnamak_recently_viewed";
 const ANNOTATIONS_STORAGE_KEY = "daneshnamak_annotations";
 
 export default function App() {
+  // Authentication State (Username: 1590, Password: 0159)
+  const [authUser, setAuthUser] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(AUTH_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  });
+
+  const handleLoginSuccess = (username: string) => {
+    try {
+      localStorage.setItem(AUTH_STORAGE_KEY, username);
+    } catch {
+      // Ignore
+    }
+    setAuthUser(username);
+  };
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    } catch {
+      // Ignore
+    }
+    setAuthUser(null);
+  };
+
   const [currentArticleId, setCurrentArticleId] = useState<string>("railway-signaling");
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
@@ -112,6 +144,10 @@ export default function App() {
 
   const currentArticle: Article =
     sampleArticles.find((a) => a.id === currentArticleId) || sampleArticles[0];
+
+  const currentArticleIndex = sampleArticles.findIndex((a) => a.id === currentArticle.id);
+  const prevArticle = currentArticleIndex > 0 ? sampleArticles[currentArticleIndex - 1] : null;
+  const nextArticle = currentArticleIndex < sampleArticles.length - 1 ? sampleArticles[currentArticleIndex + 1] : null;
 
   const isCurrentBookmarked = bookmarkedIds.includes(currentArticle.id);
 
@@ -347,6 +383,10 @@ export default function App() {
     window.print();
   };
 
+  if (!authUser) {
+    return <AuthLoginScreen onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div dir="rtl" className="h-screen h-dvh bg-white text-black font-sans selection:bg-black selection:text-white flex flex-col overflow-hidden">
       {/* Ultra-thin monochrome reading progress bar at the very top of the screen */}
@@ -559,6 +599,27 @@ export default function App() {
             >
               <Printer className="w-4 h-4" />
             </button>
+
+            {/* User Profile & Logout */}
+            <div className="flex items-center gap-1 sm:gap-2 ms-1 sm:ms-2 ps-1.5 sm:ps-2 border-s border-neutral-200">
+              <div
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-neutral-100 rounded-lg text-xs font-mono text-neutral-800 border border-neutral-200/60"
+                title="شناسه دسترسی فعال"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="font-bold">کاربر: {authUser}</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                title="خروج از سامانه و قفل"
+                className="flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1 rounded-lg text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">خروج</span>
+              </button>
+            </div>
           </div>
         </header>
       )}
@@ -695,6 +756,8 @@ export default function App() {
             onOpenTroubleshooting={() => setActiveView("troubleshooting")}
             onOpenQuiz={() => setActiveView("quiz")}
             onOpenFlashcards={() => setActiveView("flashcards")}
+            authUser={authUser}
+            onLogout={handleLogout}
           />
 
           <StationAtlasPage
@@ -760,6 +823,8 @@ export default function App() {
             onOpenTroubleshooting={() => setActiveView("troubleshooting")}
             onOpenQuiz={() => setActiveView("quiz")}
             onOpenFlashcards={() => setActiveView("flashcards")}
+            authUser={authUser}
+            onLogout={handleLogout}
           />
 
           <main className="flex-1 min-w-0 px-3 sm:px-6 md:px-8 py-6 md:py-8 h-full overflow-y-auto scroll-smooth">
@@ -827,6 +892,8 @@ export default function App() {
             onOpenTroubleshooting={() => setActiveView("troubleshooting")}
             onOpenQuiz={() => setActiveView("quiz")}
             onOpenFlashcards={() => setActiveView("flashcards")}
+            authUser={authUser}
+            onLogout={handleLogout}
           />
 
           <main className="flex-1 min-w-0 px-3 sm:px-6 md:px-8 py-6 md:py-8 h-full overflow-y-auto scroll-smooth">
@@ -890,6 +957,8 @@ export default function App() {
             onOpenTroubleshooting={() => setActiveView("troubleshooting")}
             onOpenQuiz={() => setActiveView("quiz")}
             onOpenFlashcards={() => setActiveView("flashcards")}
+            authUser={authUser}
+            onLogout={handleLogout}
           />
 
           <main className="flex-1 min-w-0 px-3 sm:px-6 md:px-8 py-6 md:py-8 h-full overflow-y-auto scroll-smooth">
@@ -941,6 +1010,8 @@ export default function App() {
             onOpenTroubleshooting={() => setActiveView("troubleshooting")}
             onOpenQuiz={() => setActiveView("quiz")}
             onOpenFlashcards={() => setActiveView("flashcards")}
+            authUser={authUser}
+            onLogout={handleLogout}
           />
 
           <main className="flex-1 min-w-0 px-3 sm:px-6 md:px-8 py-6 md:py-8 h-full overflow-y-auto scroll-smooth">
@@ -993,6 +1064,8 @@ export default function App() {
             onOpenTroubleshooting={() => setActiveView("troubleshooting")}
             onOpenQuiz={() => setActiveView("quiz")}
             onOpenFlashcards={() => setActiveView("flashcards")}
+            authUser={authUser}
+            onLogout={handleLogout}
           />
 
         {/* Middle Main Article Area (Scrollable text content) */}
@@ -1004,12 +1077,31 @@ export default function App() {
           <article className="max-w-3xl xl:max-w-4xl mx-auto space-y-6 sm:space-y-8 min-w-0 break-words">
             {/* Breadcrumb & Metadata */}
             <div className="space-y-3 pb-6">
-              <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
-                <span className="font-medium text-black">دانشنامه مهندسی</span>
-                <ChevronLeft className="w-3.5 h-3.5 text-neutral-300" />
-                <span>{currentArticle.category}</span>
-                <ChevronLeft className="w-3.5 h-3.5 text-neutral-300" />
-                <span className="text-neutral-400 truncate max-w-[200px]">{currentArticle.title}</span>
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-500">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <span className="font-medium text-black">دانشنامه مهندسی</span>
+                  <ChevronLeft className="w-3.5 h-3.5 text-neutral-300" />
+                  <span>{currentArticle.category}</span>
+                  <ChevronLeft className="w-3.5 h-3.5 text-neutral-300" />
+                  <span className="font-mono text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-md font-bold">
+                    مبحث {currentArticleIndex + 1} از {sampleArticles.length}
+                  </span>
+                </div>
+
+                {nextArticle && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentArticleId(nextArticle.id);
+                      scrollToTop();
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-neutral-900 hover:text-black bg-neutral-100 hover:bg-neutral-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                    title={`رفتن به مبحث بعدی: ${nextArticle.title}`}
+                  >
+                    <span>مبحث بعدی: {nextArticle.title.split(" (")[0].slice(0, 28)}...</span>
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
               {/* Title & Subtitle */}
@@ -1107,6 +1199,99 @@ export default function App() {
                 </div>
               </div>
             )}
+
+            {/* Sequential Topic Navigation: Next Topic / Previous Topic */}
+            <div className="pt-8 sm:pt-10 border-t border-neutral-200 space-y-3">
+              <div className="text-xs font-bold text-neutral-400 flex items-center justify-between">
+                <span>پیمایش تسلسلی مباحث دانشنامه</span>
+                <span className="font-mono text-neutral-500 font-bold">
+                  مبحث {currentArticleIndex + 1} از {sampleArticles.length}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {/* Previous Topic (Right side in RTL) */}
+                {prevArticle ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentArticleId(prevArticle.id);
+                      scrollToTop();
+                    }}
+                    className="p-4 rounded-2xl border border-neutral-200 bg-neutral-50/70 hover:bg-neutral-100 hover:border-black text-right transition-all group flex items-start gap-3 cursor-pointer"
+                  >
+                    <div className="p-2 rounded-xl bg-white border border-neutral-200 text-neutral-600 group-hover:border-black group-hover:text-black transition-colors shrink-0 mt-0.5">
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[11px] font-bold text-neutral-400 block mb-0.5">
+                        مبحث قبلی
+                      </span>
+                      <h4 className="text-sm font-bold text-neutral-900 group-hover:text-black leading-snug line-clamp-2">
+                        {prevArticle.title}
+                      </h4>
+                      <span className="text-[10px] text-neutral-500 font-medium block mt-1">
+                        {prevArticle.category} · {prevArticle.readingTime}
+                      </span>
+                    </div>
+                  </button>
+                ) : (
+                  <div className="hidden sm:block" />
+                )}
+
+                {/* Next Topic (Left side in RTL) */}
+                {nextArticle ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentArticleId(nextArticle.id);
+                      scrollToTop();
+                    }}
+                    className="p-4 rounded-2xl border-2 border-black bg-black text-white hover:bg-neutral-900 text-right transition-all group flex items-start justify-between gap-3 cursor-pointer shadow-sm"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[11px] font-bold text-neutral-300 block mb-0.5">
+                        مبحث بعدی ⬅
+                      </span>
+                      <h4 className="text-sm font-bold text-white leading-snug line-clamp-2">
+                        {nextArticle.title}
+                      </h4>
+                      <span className="text-[10px] text-neutral-300 font-medium block mt-1">
+                        {nextArticle.category} · {nextArticle.readingTime}
+                      </span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-white/10 text-white shrink-0 mt-0.5 group-hover:-translate-x-1 transition-transform">
+                      <ChevronLeft className="w-4 h-4" />
+                    </div>
+                  </button>
+                ) : (
+                  <div className="p-4 rounded-2xl border border-neutral-200 bg-neutral-50/70 flex flex-col justify-between gap-3">
+                    <div>
+                      <span className="text-[11px] font-bold text-neutral-500 block">پایان فصول دانشنامه</span>
+                      <p className="text-xs text-neutral-600 mt-1 leading-relaxed">
+                        تمامی ۷ مبحث تخصصی دانشنامه مطالعه شدند. اکنون می‌توانید در مرکز آزمون شایستگی خود را بسنجید یا فلش‌کارت‌ها را مرور نمایید.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setActiveView("quiz")}
+                        className="px-3.5 py-1.5 rounded-lg bg-black text-white text-xs font-bold hover:bg-neutral-800 transition-colors cursor-pointer"
+                      >
+                        ورود به مرکز آزمون
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveView("flashcards")}
+                        className="px-3.5 py-1.5 rounded-lg border border-neutral-300 text-neutral-800 text-xs font-semibold hover:bg-neutral-100 transition-colors cursor-pointer"
+                      >
+                        مرور فلش‌کارت‌ها
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </article>
         </main>
 

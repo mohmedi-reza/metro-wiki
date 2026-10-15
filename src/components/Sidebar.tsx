@@ -22,6 +22,8 @@ import {
   Award,
   ShieldAlert,
   GraduationCap,
+  LogOut,
+  UserCheck,
 } from "lucide-react";
 import { sampleArticles, encyclopediaTerms } from "../data/encyclopediaData";
 import { MetroLogo } from "./MetroLogo";
@@ -45,6 +47,8 @@ interface SidebarProps {
   onOpenTroubleshooting?: () => void;
   onOpenQuiz?: () => void;
   onOpenFlashcards?: () => void;
+  authUser?: string | null;
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -65,6 +69,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenTroubleshooting,
   onOpenQuiz,
   onOpenFlashcards,
+  authUser,
+  onLogout,
 }) => {
   // Navigation tabs for clean separation of concerns
   const [activeTab, setActiveTab] = useState<"tree" | "tools" | "bookmarks" | "recent" | "terms">("tree");
@@ -752,6 +758,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 ))}
               </div>
             </div>
+          )}
+        </div>
+
+        {/* User Account & Security Footer */}
+        <div className="p-3 border-t border-neutral-100 bg-neutral-50/80 flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center font-mono text-xs font-bold shrink-0">
+              {authUser ? authUser.slice(0, 4) : "کاربر"}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-bold text-neutral-800 truncate">
+                کاربر: {authUser || "ناشناس"}
+              </span>
+              <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                دسترسی فعال مهندسی
+              </span>
+            </div>
+          </div>
+          {onLogout && (
+            <button
+              type="button"
+              onClick={onLogout}
+              title="خروج از سامانه و قفل"
+              className="flex items-center gap-1 px-2 py-1.5 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer shrink-0 font-medium"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>خروج</span>
+            </button>
           )}
         </div>
       </aside>

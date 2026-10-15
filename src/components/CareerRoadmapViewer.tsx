@@ -97,6 +97,8 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
   });
 
   const [expandedStepId, setExpandedStepId] = useState<string | null>("it-step-1");
+  const [learningViewMode, setLearningViewMode] = useState<"reader" | "list">("reader");
+  const [stepQuizAnswers, setStepQuizAnswers] = useState<Record<string, number>>({});
 
   // EXAM CENTER STATES
   const [examMode, setExamMode] = useState<"comprehensive" | "modular">("comprehensive");
@@ -163,6 +165,39 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
   const progressPercent = Math.round(
     (currentCompletedList.length / (activeRoadmap.steps.length || 1)) * 100
   );
+
+  // Active step, previous step, and next step derivation for sequential topic navigation
+  const currentStepIndex = useMemo(() => {
+    const idx = activeRoadmap.steps.findIndex((s) => s.id === expandedStepId);
+    return idx >= 0 ? idx : 0;
+  }, [activeRoadmap, expandedStepId]);
+
+  const activeStep: CareerRoadmapStep =
+    activeRoadmap.steps[currentStepIndex] || activeRoadmap.steps[0];
+  const prevStep: CareerRoadmapStep | null =
+    currentStepIndex > 0 ? activeRoadmap.steps[currentStepIndex - 1] : null;
+  const nextStep: CareerRoadmapStep | null =
+    currentStepIndex < activeRoadmap.steps.length - 1 ? activeRoadmap.steps[currentStepIndex + 1] : null;
+
+  const handleGoToPrevStep = () => {
+    if (prevStep) {
+      setExpandedStepId(prevStep.id);
+      setTimeout(() => {
+        const el = document.getElementById("active-topic-reader");
+        el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    }
+  };
+
+  const handleGoToNextStep = () => {
+    if (nextStep) {
+      setExpandedStepId(nextStep.id);
+      setTimeout(() => {
+        const el = document.getElementById("active-topic-reader");
+        el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    }
+  };
 
   // Active Role Exam
   const activeRoleExam: RoleExam =
@@ -236,12 +271,21 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
     }
     const currentIndex = activeRoadmap.steps.findIndex((s) => s.id === currentStep.id);
     if (currentIndex >= 0 && currentIndex < activeRoadmap.steps.length - 1) {
-      const nextStep = activeRoadmap.steps[currentIndex + 1];
-      setExpandedStepId(nextStep.id);
+      const nextStepObj = activeRoadmap.steps[currentIndex + 1];
+      setExpandedStepId(nextStepObj.id);
       setTimeout(() => {
-        const el = document.getElementById(`step-card-${nextStep.id}`);
-        el?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 100);
+        const readerEl = document.getElementById("active-topic-reader");
+        if (readerEl) {
+          readerEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          const cardEl = document.getElementById(`step-card-${nextStepObj.id}`);
+          cardEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 50);
+    } else {
+      // Completed all steps in this curriculum! Transition to the role exam
+      setMainTab("exam");
+      handleStartExam("comprehensive");
     }
   };
 
@@ -367,97 +411,68 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
 
   return (
     <div className={cn("space-y-6 min-w-0 max-w-full pb-16 select-text", className)}>
-      {/* 1. Header Breadcrumbs & Main Section Title */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-xs text-neutral-500 flex-wrap">
-          <span className="font-medium text-black">دانشنامه مهندسی</span>
-          <ChevronLeft className="w-3.5 h-3.5 text-neutral-300" />
-          <span>مرکز آموزش و آزمون‌های شایستگی ریلی</span>
-          <ChevronLeft className="w-3.5 h-3.5 text-neutral-300" />
-          <span className="text-neutral-900 font-bold">{activeRoadmap.roleTitle.split(" (")[0]}</span>
+      {/* 1. Header & Minimal Clean Title */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-neutral-100">
+        <div>
+          <div className="flex items-center gap-1.5 text-xs text-neutral-400 mb-1">
+            <span>دانشنامه مهندسی</span>
+            <span>/</span>
+            <span className="text-neutral-600 font-medium">مسیرهای شغلی و آموزش</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-black tracking-tight">
+            مسیر شایستگی و آموزش مهندسی
+          </h1>
+          <p className="text-xs sm:text-sm text-neutral-500 mt-1 max-w-2xl leading-relaxed">
+            برنامه راهبردی یادگیری مهارت‌های تخصصی، تجهیزات خط، اینترلاکینگ و اتاق‌های SER خط ۱ مترو
+          </p>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-neutral-900 tracking-tight flex items-center gap-2.5">
-              <span className="p-2 rounded-2xl bg-black text-white shadow-xs">
-                <GraduationCap className="w-5 h-5" />
-              </span>
-              <span>مسیر شایستگی و مرکز آزمون‌های تخصصی</span>
-            </h1>
-            <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed max-w-3xl">
-              سامانه دوگانه آموزش گام‌به‌گام سیلابس‌های مهندسی خط ۱، و مرکز آزمون رسمی سنجش صلاحیت با استانداردهای CENELEC SIL 4.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Top-Level Main Section Switcher: 📚 آموزش کامل | 🎓 آزمون و سنجش کامل */}
-      <div className="bg-neutral-100 p-1.5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 shadow-2xs">
-        <button
-          type="button"
-          onClick={() => setMainTab("learning")}
-          className={cn(
-            "flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-between sm:justify-center gap-2 cursor-pointer",
-            mainTab === "learning"
-              ? "bg-white text-neutral-900 shadow-sm"
-              : "text-neutral-600 hover:text-black hover:bg-neutral-200/50"
-          )}
-        >
-          <div className="flex items-center gap-2 truncate">
-            <BookOpen className="w-4 h-4 shrink-0" />
-            <span className="truncate">مسیر شایستگی و آموزش</span>
-          </div>
-          <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-700 font-semibold shrink-0">
-            {activeRoadmap.steps.length} گام درسی
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setMainTab("exam");
-            if (!isTimerRunning && !isExamSubmitted) {
-              handleStartExam("comprehensive");
-            }
-          }}
-          className={cn(
-            "flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-between sm:justify-center gap-2 cursor-pointer",
-            mainTab === "exam"
-              ? "bg-black text-white shadow-sm"
-              : "text-neutral-600 hover:text-black hover:bg-neutral-200/50"
-          )}
-        >
-          <div className="flex items-center gap-2 truncate">
-            <Award className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="truncate">مرکز آزمون‌های تخصصی</span>
-          </div>
-          <span
+        {/* Tab switch between Learning & Role Exam */}
+        <div className="inline-flex items-center p-1 bg-neutral-100 rounded-xl text-xs font-semibold self-start sm:self-auto shrink-0">
+          <button
+            type="button"
+            onClick={() => setMainTab("learning")}
             className={cn(
-              "text-[11px] font-mono px-2 py-0.5 rounded-md font-semibold shrink-0",
-              mainTab === "exam" ? "bg-white/20 text-neutral-200" : "bg-neutral-200 text-neutral-800"
+              "px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5",
+              mainTab === "learning"
+                ? "bg-white text-black shadow-2xs font-bold"
+                : "text-neutral-500 hover:text-black"
             )}
           >
-            آزمون رسمی SIL 4
-          </span>
-        </button>
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>مسیر آموزش ({activeRoadmap.steps.length} گام)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMainTab("exam");
+              if (!isTimerRunning && !isExamSubmitted) {
+                handleStartExam("comprehensive");
+              }
+            }}
+            className={cn(
+              "px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5",
+              mainTab === "exam"
+                ? "bg-white text-black shadow-2xs font-bold"
+                : "text-neutral-500 hover:text-black"
+            )}
+          >
+            <Award className="w-3.5 h-3.5 text-amber-600" />
+            <span>آزمون این نقش</span>
+          </button>
+        </div>
       </div>
 
-      {/* 3. Role Selector Cards (Shared between both sections) */}
-      <div className="bg-white rounded-3xl border border-neutral-200 p-4 sm:p-5 shadow-xs space-y-4">
-        <div className="flex items-center justify-between text-xs font-bold text-neutral-400 uppercase tracking-wider px-1">
-          <span>انتخاب نقش تخصصی جهت {mainTab === "learning" ? "مطالعه و آموزش" : "شرکت در آزمون"}:</span>
-          <span className="font-mono text-neutral-500 font-semibold lowercase">
-            {Object.keys(ROLE_ROADMAPS).length} تخصص ریلی
-          </span>
+      {/* 2. Sleek, Minimal Role Selector Chips */}
+      <div>
+        <div className="text-[11px] font-semibold text-neutral-400 mb-2">
+          انتخاب نقش مهندسی:
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {Object.values(ROLE_ROADMAPS).map((role) => {
             const isSelected = role.id === selectedRoleId;
             const completedCount = (completedSteps[role.id] || []).length;
             const percent = Math.round((completedCount / (role.steps.length || 1)) * 100);
-            const roleExamRecord = examHistory[role.id];
 
             return (
               <button
@@ -472,79 +487,38 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
                   }
                 }}
                 className={cn(
-                  "p-3.5 rounded-2xl text-right transition-all border flex flex-col justify-between gap-3 cursor-pointer group relative overflow-hidden",
+                  "p-3 rounded-xl text-right transition-all border flex items-center gap-2.5 cursor-pointer relative",
                   isSelected
-                    ? "bg-neutral-950 text-white border-neutral-950 shadow-md ring-2 ring-black/10"
-                    : "bg-neutral-50/60 hover:bg-neutral-100/80 border-neutral-200/90 text-neutral-800"
+                    ? "bg-black text-white border-black shadow-2xs"
+                    : "bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-800"
                 )}
               >
-                <div className="flex items-start justify-between gap-2 w-full">
-                  <div
-                    className={cn(
-                      "p-2 rounded-xl shrink-0 transition-colors",
-                      isSelected
-                        ? "bg-white/10 text-white"
-                        : "bg-white text-neutral-700 shadow-2xs border border-neutral-200/60"
-                    )}
-                  >
-                    {getRoleIcon(role.iconName, "w-4 h-4")}
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    {roleExamRecord && (
-                      <span
-                        className={cn(
-                          "text-[9px] font-mono font-bold px-1.5 py-0.2 rounded shrink-0",
-                          roleExamRecord.passed
-                            ? "bg-emerald-500 text-white"
-                            : "bg-rose-500 text-white"
-                        )}
-                        title={`نمره آزمون: ${roleExamRecord.scorePercent}%`}
-                      >
-                        آزمون: {roleExamRecord.scorePercent}%
-                      </span>
-                    )}
-
-                    <span
-                      className={cn(
-                        "text-[10px] font-mono font-bold px-2 py-0.5 rounded-md shrink-0",
-                        isSelected
-                          ? percent === 100
-                            ? "bg-emerald-500 text-white"
-                            : "bg-white/20 text-neutral-200"
-                          : percent === 100
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-neutral-200/80 text-neutral-700"
-                      )}
-                    >
-                      آموزش: {percent}%
-                    </span>
-                  </div>
+                <div
+                  className={cn(
+                    "p-1.5 rounded-lg shrink-0",
+                    isSelected ? "bg-white/15 text-white" : "bg-neutral-100 text-neutral-600"
+                  )}
+                >
+                  {getRoleIcon(role.iconName, "w-4 h-4")}
                 </div>
 
-                <div className="space-y-1 w-full min-w-0">
-                  <span className="text-xs sm:text-sm font-extrabold truncate block leading-snug">
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold truncate leading-tight">
                     {role.roleTitle.split(" (")[0]}
-                  </span>
-                  <span
-                    className={cn(
-                      "text-[10px] block truncate font-sans",
-                      isSelected ? "text-neutral-400" : "text-neutral-500"
-                    )}
-                  >
-                    {role.badge}
-                  </span>
-                </div>
-
-                <div className="w-full bg-neutral-200/40 rounded-full h-1 overflow-hidden mt-1">
+                  </div>
                   <div
                     className={cn(
-                      "h-full rounded-full transition-all duration-300",
-                      isSelected ? "bg-emerald-400" : "bg-neutral-900"
+                      "text-[10px] font-mono mt-0.5",
+                      isSelected ? "text-neutral-300" : "text-neutral-400"
                     )}
-                    style={{ width: `${percent}%` }}
-                  />
+                  >
+                    {percent}% تکمیل‌شده
+                  </div>
                 </div>
+
+                {isSelected && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                )}
               </button>
             );
           })}
@@ -555,98 +529,126 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
           TAB 1: آموزش و مسیر شایستگی‌ها (COMPREHENSIVE TRAINING & LEARNING SECTION)
          ========================================================================= */}
       {mainTab === "learning" && (
-        <div className="space-y-6 animate-in fade-in duration-150">
-          {/* Active Role Learning Dashboard */}
-          <div className="bg-white rounded-3xl border border-neutral-200 p-5 sm:p-7 shadow-xs space-y-6">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-5 border-b border-neutral-100">
-              <div className="space-y-2 flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-lg bg-black text-white font-mono">
-                    {activeRoadmap.badge}
-                  </span>
-                  <span className="text-xs font-mono text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-lg flex items-center gap-1 font-semibold">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>{activeRoadmap.estimatedTotalHours}</span>
-                  </span>
-                  <span className="text-xs font-sans text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-lg">
-                    مخاطبان: {activeRoadmap.targetAudience}
-                  </span>
+        <div className="space-y-5 animate-in fade-in duration-100">
+          {/* Active Role Meta & Progress Bar */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-neutral-50/70 border border-neutral-200/90 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap text-xs">
+                  <span className="font-bold text-black">{activeRoadmap.roleTitle}</span>
+                  <span className="text-neutral-300">·</span>
+                  <span className="text-neutral-500 font-mono text-[11px]">{activeRoadmap.estimatedTotalHours}</span>
+                  <span className="text-neutral-300">·</span>
+                  <span className="text-neutral-500 text-[11px]">{activeRoadmap.badge}</span>
                 </div>
-
-                <h2 className="text-lg sm:text-xl font-black text-neutral-900 leading-snug">
-                  {activeRoadmap.roleTitle}
-                </h2>
-                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed text-justify max-w-3xl">
+                <p className="text-xs text-neutral-600 leading-relaxed max-w-3xl">
                   {activeRoadmap.description}
                 </p>
               </div>
 
-              {/* Progress Circular & Metrics Badge */}
-              <div className="flex items-center justify-between sm:justify-start gap-4 bg-neutral-50 border border-neutral-200/80 rounded-2xl p-4 w-full sm:w-auto shrink-0">
-                <div className="text-right space-y-0.5">
-                  <span className="text-[11px] font-semibold text-neutral-500 block">پیشرفت دوره:</span>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl sm:text-3xl font-black font-mono text-neutral-900">
-                      {progressPercent}%
-                    </span>
-                    <span className="text-xs text-neutral-500 font-semibold">
-                      ({currentCompletedList.length} از {activeRoadmap.steps.length} گام)
-                    </span>
+              <div className="flex items-center gap-3 shrink-0 self-end sm:self-auto">
+                <div className="text-left sm:text-right">
+                  <div className="text-xs font-mono font-bold text-black">
+                    {currentCompletedList.length} از {activeRoadmap.steps.length} گام
                   </div>
+                  <div className="text-[10px] text-neutral-400 font-medium">پیشرفت کلی</div>
                 </div>
-
-                <div className="w-14 h-14 rounded-full bg-neutral-200/80 p-1 flex items-center justify-center shrink-0">
-                  <div
-                    className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center font-bold text-xs font-mono shadow-xs",
-                      progressPercent === 100 ? "bg-emerald-600 text-white" : "bg-black text-white"
-                    )}
-                  >
-                    {progressPercent === 100 ? <Check className="w-5 h-5 stroke-[3]" /> : `${progressPercent}%`}
-                  </div>
+                <div className="px-2.5 py-1 rounded-lg bg-black text-white font-mono text-xs font-bold">
+                  {progressPercent}%
                 </div>
               </div>
             </div>
 
-            {/* Linear Stepper Breadcrumbs Bar */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-semibold text-neutral-500 px-1">
-                <span>مراحل زنجیره یادگیری:</span>
-                {currentCompletedList.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleResetRoleProgress}
-                    className="text-[11px] text-neutral-400 hover:text-neutral-800 transition-colors flex items-center gap-1 cursor-pointer"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    <span>بازنشانی پیشرفت آموزش</span>
-                  </button>
-                )}
+            {/* Progress line */}
+            <div className="w-full bg-neutral-200/80 rounded-full h-1.5 overflow-hidden">
+              <div
+                className="bg-black h-full transition-all duration-300 rounded-full"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+
+            {/* View Mode & Topic Stepper Header */}
+            <div className="space-y-3 pt-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-neutral-800">
+                  <span>سرفصل‌های آموزشی این دوره</span>
+                  <span className="font-mono text-neutral-400">({activeRoadmap.steps.length} مبحث تخصصی)</span>
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  {/* View Mode Toggle: Reader vs Overview */}
+                  <div className="inline-flex items-center p-0.5 bg-neutral-100 rounded-lg text-[11px] font-semibold border border-neutral-200/60">
+                    <button
+                      type="button"
+                      onClick={() => setLearningViewMode("reader")}
+                      className={cn(
+                        "px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5",
+                        learningViewMode === "reader"
+                          ? "bg-white text-black shadow-2xs font-bold"
+                          : "text-neutral-500 hover:text-black"
+                      )}
+                    >
+                      <BookOpen className="w-3 h-3" />
+                      <span>مطالعه گام‌به‌گام</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLearningViewMode("list")}
+                      className={cn(
+                        "px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5",
+                        learningViewMode === "list"
+                          ? "bg-white text-black shadow-2xs font-bold"
+                          : "text-neutral-500 hover:text-black"
+                      )}
+                    >
+                      <Layers className="w-3 h-3" />
+                      <span>نمای کلی سرفصل‌ها</span>
+                    </button>
+                  </div>
+
+                  {currentCompletedList.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleResetRoleProgress}
+                      className="text-[11px] text-neutral-400 hover:text-neutral-800 transition-colors flex items-center gap-1 cursor-pointer px-1 py-1"
+                      title="بازنشانی پیشرفت آموزش"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span className="hidden sm:inline">بازنشانی</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Stepper Progress Visual Bar - Scrollable on mobile, grid on desktop */}
-              <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 overflow-x-auto pb-1.5 sm:pb-0 scrollbar-none">
+              {/* Horizontal Stepper Timeline Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
                 {activeRoadmap.steps.map((st, sIdx) => {
                   const isDone = currentCompletedList.includes(st.id);
-                  const isCurrent = expandedStepId === st.id;
+                  const isCurrent = activeStep.id === st.id;
 
                   return (
                     <button
                       key={st.id}
                       type="button"
-                      onClick={() => setExpandedStepId(st.id)}
+                      onClick={() => {
+                        setExpandedStepId(st.id);
+                        if (learningViewMode !== "reader") {
+                          setLearningViewMode("reader");
+                        }
+                      }}
                       className={cn(
-                        "p-2.5 rounded-xl border text-right transition-all flex items-center gap-2 cursor-pointer text-xs shrink-0 sm:shrink min-w-[200px] sm:min-w-0",
+                        "px-3 py-2 rounded-xl border text-right transition-all flex items-center gap-2 cursor-pointer text-xs shrink-0",
                         isCurrent
-                          ? "bg-neutral-900 text-white border-neutral-900 shadow-2xs"
+                          ? "bg-black text-white border-black shadow-xs font-bold"
                           : isDone
-                          ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-bold"
-                          : "bg-neutral-50 hover:bg-neutral-100 border-neutral-200 text-neutral-700"
+                          ? "bg-neutral-100 text-neutral-800 border-neutral-300 hover:bg-neutral-200"
+                          : "bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-600"
                       )}
                     >
                       <span
                         className={cn(
-                          "w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-mono font-bold shrink-0",
+                          "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono font-bold shrink-0",
                           isCurrent
                             ? "bg-white text-black"
                             : isDone
@@ -656,7 +658,7 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
                       >
                         {isDone ? <Check className="w-3 h-3 stroke-[3]" /> : sIdx + 1}
                       </span>
-                      <span className="truncate flex-1 font-semibold text-[11px]">
+                      <span className="truncate max-w-[150px] sm:max-w-[220px]">
                         گام {st.order}: {st.title.split(". ")[1] || st.title}
                       </span>
                     </button>
@@ -665,290 +667,607 @@ export const CareerRoadmapViewer: React.FC<CareerRoadmapViewerProps> = ({
               </div>
             </div>
 
-            {/* Recommended Next Step Callout */}
-            {nextIncompleteStep && (
-              <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="p-1.5 rounded-xl bg-amber-500 text-white shrink-0">
-                    <Sparkles className="w-4 h-4" />
-                  </span>
-                  <div className="space-y-0.5 min-w-0">
-                    <strong className="text-amber-950 block font-bold">گام پیشنهادی بعدی برای شما:</strong>
-                    <span className="text-amber-900 truncate block">
-                      گام {nextIncompleteStep.order}: {nextIncompleteStep.title}
+            {/* MODE 1: FOCUSED TOPIC READER */}
+            {learningViewMode === "reader" && (
+              <div id="active-topic-reader" className="bg-white rounded-3xl border border-neutral-200 p-5 sm:p-8 space-y-6 shadow-xs animate-in fade-in duration-100">
+                {/* Topic Header Bar */}
+                <div className="pb-5 border-b border-neutral-100 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono font-bold bg-neutral-100 text-neutral-900 px-2.5 py-1 rounded-lg">
+                        مبحث {currentStepIndex + 1} از {activeRoadmap.steps.length}
+                      </span>
+                      <span className="text-neutral-300">·</span>
+                      <span className="text-neutral-500 font-semibold">{activeStep.category}</span>
+                      <span className="text-neutral-300">·</span>
+                      <span className="font-mono text-neutral-400">{activeStep.duration}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => toggleStepCompletion(activeStep.id)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer",
+                        currentCompletedList.includes(activeStep.id)
+                          ? "bg-emerald-50 border-emerald-300 text-emerald-800"
+                          : "bg-neutral-50 hover:bg-neutral-100 border-neutral-200 text-neutral-700"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "w-4 h-4 rounded flex items-center justify-center text-[10px]",
+                          currentCompletedList.includes(activeStep.id)
+                            ? "bg-emerald-600 text-white"
+                            : "border border-neutral-300 bg-white"
+                        )}
+                      >
+                        {currentCompletedList.includes(activeStep.id) && <Check className="w-3 h-3 stroke-[3]" />}
+                      </span>
+                      <span>
+                        {currentCompletedList.includes(activeStep.id) ? "تکمیل شده ✓" : "علامت‌گذاری به عنوان تکمیل"}
+                      </span>
+                    </button>
+                  </div>
+
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight leading-snug">
+                      {activeStep.title}
+                    </h2>
+                    <p className="text-xs sm:text-sm font-mono text-neutral-400 mt-1">
+                      {activeStep.titleEn}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Educational Content & Technical Summary */}
+                <div className="space-y-4">
+                  <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                    شرح و مبانی فنی این مبحث:
+                  </div>
+                  <div className="p-4 sm:p-5 rounded-2xl bg-neutral-50/80 border border-neutral-200/70 text-neutral-800 text-xs sm:text-sm leading-relaxed text-justify space-y-2">
+                    <p>{activeStep.summary}</p>
+                  </div>
+                </div>
+
+                {/* Interactive Key Competencies Checklist */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-neutral-900">
+                      مهارت‌ها و شایستگی‌های محوری این مبحث:
+                    </span>
+                    <span className="font-mono text-neutral-400 text-[11px]">
+                      {
+                        activeStep.keyCompetencies.filter(
+                          (_, cIdx) => competencyChecks[`${activeStep.id}-comp-${cIdx}`]
+                        ).length
+                      }{" "}
+                      از {activeStep.keyCompetencies.length} تسلط‌یافته
                     </span>
                   </div>
-                </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setExpandedStepId(nextIncompleteStep.id);
-                    const el = document.getElementById(`step-card-${nextIncompleteStep.id}`);
-                    el?.scrollIntoView({ behavior: "smooth", block: "center" });
-                  }}
-                  className="w-full sm:w-auto px-3.5 py-2 sm:py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold transition-colors cursor-pointer shrink-0 text-center"
-                >
-                  رفتن به این گام
-                </button>
-              </div>
-            )}
-          </div>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                    {activeStep.keyCompetencies.map((comp, cIdx) => {
+                      const compKey = `${activeStep.id}-comp-${cIdx}`;
+                      const isChecked = !!competencyChecks[compKey];
 
-          {/* Category Filters Bar */}
-          <div className="flex items-center justify-between gap-2 flex-wrap px-1">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
-              <span className="text-[11px] font-semibold text-neutral-400 shrink-0 ml-1 flex items-center gap-1">
-                <Filter className="w-3 h-3" />
-                <span>فیلتر فصول:</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => setCategoryFilter("all")}
-                className={cn(
-                  "px-3 py-1 rounded-lg transition-all text-xs font-semibold cursor-pointer border",
-                  categoryFilter === "all"
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50"
-                )}
-              >
-                همه بخش‌ها ({activeRoadmap.steps.length})
-              </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setCategoryFilter(cat)}
-                  className={cn(
-                    "px-3 py-1 rounded-lg transition-all text-xs font-semibold cursor-pointer border shrink-0",
-                    categoryFilter === cat
-                      ? "bg-black text-white border-black"
-                      : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50"
-                  )}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            <span className="text-[11px] text-neutral-400 font-mono">
-              {visibleSteps.length} گام درسی نمایش داده شده
-            </span>
-          </div>
-
-          {/* Step Timeline Cards */}
-          <div className="relative space-y-4 before:absolute before:top-6 before:bottom-6 before:right-6 before:w-0.5 before:bg-neutral-200/80 before:hidden sm:before:block">
-            {visibleSteps.map((step) => {
-              const isDone = currentCompletedList.includes(step.id);
-              const isExpanded = expandedStepId === step.id;
-
-              return (
-                <div
-                  key={step.id}
-                  id={`step-card-${step.id}`}
-                  className={cn(
-                    "rounded-3xl border transition-all overflow-hidden bg-white shadow-2xs relative",
-                    isDone
-                      ? "border-emerald-300 ring-1 ring-emerald-300/40"
-                      : isExpanded
-                      ? "border-neutral-900 ring-2 ring-neutral-900/10 shadow-md"
-                      : "border-neutral-200 hover:border-neutral-300"
-                  )}
-                >
-                  {/* Step Header Accordion */}
-                  <div
-                    onClick={() => setExpandedStepId(isExpanded ? null : step.id)}
-                    className="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer hover:bg-neutral-50/70 transition-colors"
-                  >
-                    <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleStepCompletion(step.id);
-                        }}
-                        className={cn(
-                          "w-8 h-8 rounded-2xl flex items-center justify-center transition-all cursor-pointer shrink-0 border mt-0.5",
-                          isDone
-                            ? "bg-emerald-600 border-emerald-600 text-white shadow-xs hover:bg-emerald-700"
-                            : "bg-white border-neutral-300 text-neutral-400 hover:border-black hover:text-black"
-                        )}
-                        title={isDone ? "لغو تیک این گام" : "تیک زدن و تکمیل این گام"}
-                      >
-                        {isDone ? <Check className="w-4 h-4 stroke-[3]" /> : <Circle className="w-4 h-4" />}
-                      </button>
-
-                      <div className="space-y-1 min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-neutral-900 text-white">
-                            گام {step.order}
-                          </span>
-                          <span className="text-[10px] font-bold text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-md">
-                            {step.category}
-                          </span>
-                          <span className="text-[11px] font-mono text-neutral-400 flex items-center gap-1 font-semibold">
-                            <Clock className="w-3 h-3 text-neutral-400" />
-                            <span>{step.duration}</span>
-                          </span>
-                          {isDone && (
-                            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.2 rounded-md flex items-center gap-1">
-                              <Check className="w-3 h-3 stroke-[2.5]" />
-                              <span>تکمیل شد</span>
-                            </span>
-                          )}
-                        </div>
-
-                        <h3
+                      return (
+                        <li
+                          key={cIdx}
+                          onClick={() => toggleCompetency(compKey)}
                           className={cn(
-                            "text-sm sm:text-base font-extrabold text-neutral-900 leading-snug break-words",
-                            isDone ? "text-neutral-500" : ""
+                            "p-3 rounded-xl border flex items-start gap-2.5 transition-all cursor-pointer select-none",
+                            isChecked
+                              ? "bg-neutral-50/90 border-neutral-300 text-neutral-900 font-medium"
+                              : "bg-white hover:bg-neutral-50/80 border-neutral-200 text-neutral-600"
                           )}
                         >
-                          {step.title}
-                        </h3>
-                        <p className="text-xs font-mono text-neutral-400 truncate hidden sm:block">
-                          {step.titleEn}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0 mt-1">
-                      <span className="text-xs text-neutral-400 hidden sm:inline">
-                        {isExpanded ? "بستن محتوا" : "مشاهده جزئیات"}
-                      </span>
-                      <div
-                        className={cn(
-                          "p-1.5 rounded-lg text-neutral-500 transition-transform duration-150",
-                          isExpanded ? "rotate-90 text-black" : ""
-                        )}
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step Expanded Content */}
-                  {isExpanded && (
-                    <div className="p-4 sm:p-6 border-t border-neutral-100 bg-neutral-50/40 space-y-6 animate-in fade-in duration-100 min-w-0">
-                      {/* Step Summary */}
-                      <div className="p-4 rounded-2xl bg-white border border-neutral-200/90 space-y-2">
-                        <span className="text-xs font-bold text-neutral-900 block flex items-center gap-1.5">
-                          <BookOpen className="w-3.5 h-3.5 text-neutral-700" />
-                          <span>شرح و سرفصل آموزشی گام {step.order}:</span>
-                        </span>
-                        <p className="text-xs sm:text-sm text-neutral-700 leading-relaxed text-justify break-words">
-                          {step.summary}
-                        </p>
-                      </div>
-
-                      {/* Interactive Competencies Checklist */}
-                      <div className="p-4 rounded-2xl bg-white border border-neutral-200/90 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-                            <BookmarkCheck className="w-4 h-4 text-emerald-600" />
-                            <span>شایستگی‌ها و مهارت‌های محوری (برای تسلط تیک بزنید):</span>
+                          <span
+                            className={cn(
+                              "w-4 h-4 rounded flex items-center justify-center shrink-0 mt-0.5 transition-colors",
+                              isChecked
+                                ? "bg-black text-white"
+                                : "border border-neutral-300 bg-white"
+                            )}
+                          >
+                            {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
                           </span>
-                          <span className="text-[10px] font-mono text-neutral-400">
-                            {
-                              step.keyCompetencies.filter(
-                                (_, cIdx) => competencyChecks[`${step.id}-comp-${cIdx}`]
-                              ).length
-                            }{" "}
-                            از {step.keyCompetencies.length}
-                          </span>
-                        </div>
+                          <span className="leading-relaxed flex-1 break-words">{comp}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
 
-                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                          {step.keyCompetencies.map((comp, cIdx) => {
-                            const compKey = `${step.id}-comp-${cIdx}`;
-                            const isChecked = !!competencyChecks[compKey];
+                {/* Technical References & Tool Launchers */}
+                <div className="pt-2 flex flex-wrap items-center gap-2">
+                  {activeStep.articleId && (
+                    <button
+                      type="button"
+                      onClick={() => onNavigateToArticle?.(activeStep.articleId!, activeStep.sectionId)}
+                      className="px-3.5 py-2 rounded-xl border border-neutral-200 hover:border-black text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer text-neutral-700 hover:text-black bg-white"
+                    >
+                      <BookOpen className="w-3.5 h-3.5 text-neutral-500" />
+                      <span>مطالعه مقاله تفصیلی در دانشنامه</span>
+                    </button>
+                  )}
 
-                            return (
-                              <li
-                                key={cIdx}
-                                onClick={() => toggleCompetency(compKey)}
+                  {activeStep.toolsAction === "racks" && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenRacksMap?.("racks")}
+                      className="px-3.5 py-2 rounded-xl border border-neutral-200 hover:border-black text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer text-neutral-700 hover:text-black bg-white"
+                    >
+                      <Server className="w-3.5 h-3.5 text-neutral-500" />
+                      <span>{activeStep.actionLabel || "مشاهده در اطلس رک‌ها"}</span>
+                    </button>
+                  )}
+
+                  {activeStep.toolsAction === "simulator" && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenSimulator?.()}
+                      className="px-3.5 py-2 rounded-xl border border-neutral-200 hover:border-black text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer text-neutral-700 hover:text-black bg-white"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current text-neutral-700" />
+                      <span>{activeStep.actionLabel || "اجرا در شبیه‌ساز CTC"}</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Inline Checkpoint Question (Self-Assessment for this step) */}
+                {activeStep.checkpointQuestions && activeStep.checkpointQuestions.length > 0 && (
+                  <div className="pt-2">
+                    <div className="p-4 sm:p-5 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-3">
+                      <div className="flex items-center gap-2 text-xs font-bold text-neutral-800">
+                        <HelpCircle className="w-4 h-4 text-neutral-500" />
+                        <span>چک‌پوینت تسلط و سوال خودآزمایی این مبحث:</span>
+                      </div>
+
+                      {activeStep.checkpointQuestions.map((q, qIdx) => {
+                        const answerKey = `${activeStep.id}-q-${qIdx}`;
+                        const selectedAnswer = stepQuizAnswers[answerKey];
+                        const isAnswered = selectedAnswer !== undefined;
+                        const isCorrect = selectedAnswer === q.correctIndex;
+
+                        return (
+                          <div key={qIdx} className="space-y-3 pt-1">
+                            <p className="text-xs sm:text-sm font-bold text-neutral-900 leading-snug">
+                              {q.question}
+                            </p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {q.options.map((opt, optIdx) => {
+                                const isOptionSelected = selectedAnswer === optIdx;
+                                const isOptionCorrect = optIdx === q.correctIndex;
+
+                                return (
+                                  <button
+                                    key={optIdx}
+                                    type="button"
+                                    onClick={() => {
+                                      setStepQuizAnswers((prev) => ({
+                                        ...prev,
+                                        [answerKey]: optIdx,
+                                      }));
+                                    }}
+                                    className={cn(
+                                      "p-2.5 rounded-xl border text-right text-xs transition-all cursor-pointer flex items-center gap-2",
+                                      isAnswered
+                                        ? isOptionCorrect
+                                          ? "bg-emerald-50 border-emerald-300 text-emerald-950 font-bold"
+                                          : isOptionSelected
+                                          ? "bg-rose-50 border-rose-300 text-rose-950"
+                                          : "bg-white border-neutral-200 text-neutral-500 opacity-60"
+                                        : isOptionSelected
+                                        ? "bg-black text-white border-black font-bold"
+                                        : "bg-white hover:bg-neutral-50 border-neutral-200 text-neutral-800"
+                                    )}
+                                  >
+                                    <span
+                                      className={cn(
+                                        "w-5 h-5 rounded-full flex items-center justify-center font-mono text-[10px] shrink-0 font-bold",
+                                        isAnswered
+                                          ? isOptionCorrect
+                                            ? "bg-emerald-600 text-white"
+                                            : isOptionSelected
+                                            ? "bg-rose-600 text-white"
+                                            : "bg-neutral-200 text-neutral-600"
+                                          : isOptionSelected
+                                          ? "bg-white text-black"
+                                          : "bg-neutral-100 text-neutral-700"
+                                      )}
+                                    >
+                                      {optIdx + 1}
+                                    </span>
+                                    <span className="flex-1 leading-snug">{opt}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {isAnswered && (
+                              <div
                                 className={cn(
-                                  "p-3 rounded-xl border flex items-start gap-2.5 transition-all cursor-pointer select-none",
-                                  isChecked
-                                    ? "bg-emerald-50/70 border-emerald-200 text-emerald-950 font-medium"
-                                    : "bg-neutral-50 hover:bg-neutral-100 border-neutral-200 text-neutral-700"
+                                  "p-3 rounded-xl text-xs leading-relaxed animate-in fade-in duration-150",
+                                  isCorrect
+                                    ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
+                                    : "bg-rose-50 text-rose-900 border border-rose-200"
                                 )}
                               >
-                                <span
-                                  className={cn(
-                                    "w-4 h-4 rounded-md flex items-center justify-center shrink-0 mt-0.5 transition-colors",
-                                    isChecked
-                                      ? "bg-emerald-600 text-white"
-                                      : "border border-neutral-400 bg-white"
-                                  )}
-                                >
-                                  {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
-                                </span>
-                                <span className="leading-snug flex-1 break-words">{comp}</span>
-                              </li>
-                            );
-                          })}
-                        </ul>
+                                <strong className="block font-bold mb-1">
+                                  {isCorrect ? "✓ پاسخ کاملاً صحیح است!" : "✗ نیاز به مرور دارد"}
+                                </strong>
+                                <span>{q.explanation}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* DEDICATED PREVIOUS & NEXT TOPIC NAVIGATION (دکمه‌های مبحث بعدی و قبلی) */}
+                <div className="pt-6 sm:pt-8 border-t border-neutral-100 space-y-3">
+                  <div className="flex items-center justify-between text-xs font-bold text-neutral-400">
+                    <span>پیمایش بین مباحث آموزشی دوره</span>
+                    <span className="font-mono text-neutral-500 font-bold">
+                      مبحث {currentStepIndex + 1} از {activeRoadmap.steps.length}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {/* Previous Topic (Right in RTL) */}
+                    {prevStep ? (
+                      <button
+                        type="button"
+                        onClick={handleGoToPrevStep}
+                        className="p-4 rounded-2xl border border-neutral-200 bg-neutral-50/70 hover:bg-neutral-100 hover:border-black text-right transition-all group flex items-start gap-3 cursor-pointer"
+                      >
+                        <div className="p-2 rounded-xl bg-white border border-neutral-200 text-neutral-600 group-hover:border-black group-hover:text-black transition-colors shrink-0 mt-0.5">
+                          <ChevronRight className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[11px] font-bold text-neutral-400 block mb-0.5">
+                            مبحث قبلی
+                          </span>
+                          <h4 className="text-sm font-bold text-neutral-900 group-hover:text-black leading-snug line-clamp-2">
+                            {prevStep.title}
+                          </h4>
+                          <span className="text-[10px] text-neutral-500 font-medium block mt-1">
+                            {prevStep.category} · {prevStep.duration}
+                          </span>
+                        </div>
+                      </button>
+                    ) : (
+                      <div className="p-4 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/40 text-neutral-400 text-xs flex items-center justify-center">
+                        <span>نخستین مبحث این دوره آموزشی</span>
                       </div>
+                    )}
 
-                      {/* Actions Toolbar */}
-                      <div className="p-3.5 bg-white rounded-2xl border border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                          {step.articleId && (
+                    {/* Next Topic (Left in RTL) */}
+                    {nextStep ? (
+                      <button
+                        type="button"
+                        onClick={() => handleCompleteAndNext(activeStep)}
+                        className="p-4 rounded-2xl border-2 border-black bg-black text-white hover:bg-neutral-900 text-right transition-all group flex items-start justify-between gap-3 cursor-pointer shadow-sm"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-[11px] font-bold text-neutral-300">
+                              مبحث بعدی ⬅
+                            </span>
+                            <span className="text-[10px] bg-white/20 text-white px-1.5 py-0.2 rounded font-mono">
+                              تکمیل و رفتن به بعد
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-bold text-white leading-snug line-clamp-2">
+                            {nextStep.title}
+                          </h4>
+                          <span className="text-[10px] text-neutral-300 font-medium block mt-1">
+                            {nextStep.category} · {nextStep.duration}
+                          </span>
+                        </div>
+                        <div className="p-2 rounded-xl bg-white/10 text-white shrink-0 mt-0.5 group-hover:-translate-x-1 transition-transform">
+                          <ChevronLeft className="w-4 h-4" />
+                        </div>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!currentCompletedList.includes(activeStep.id)) {
+                            toggleStepCompletion(activeStep.id);
+                          }
+                          setMainTab("exam");
+                          handleStartExam("comprehensive");
+                        }}
+                        className="p-4 rounded-2xl border-2 border-neutral-900 bg-neutral-900 hover:bg-black text-white text-right transition-all group flex items-start justify-between gap-3 cursor-pointer shadow-sm"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[11px] font-bold text-amber-300 block mb-0.5">
+                            پایان سرفصل‌های دوره 🎓
+                          </span>
+                          <h4 className="text-sm font-bold text-white leading-snug">
+                            ورود به آزمون جامع سنجش شایستگی
+                          </h4>
+                          <span className="text-[10px] text-neutral-300 font-medium block mt-1">
+                            شروع ارزیابی رسمی استاندارد CENELEC
+                          </span>
+                        </div>
+                        <div className="p-2 rounded-xl bg-white/15 text-white shrink-0 mt-0.5 group-hover:-translate-x-1 transition-transform">
+                          <Award className="w-4 h-4 text-amber-400" />
+                        </div>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MODE 2: FULL CURRICULUM OVERVIEW LIST */}
+            {learningViewMode === "list" && (
+              <div className="space-y-4 animate-in fade-in duration-100">
+                {/* Category Filters Bar */}
+                <div className="flex items-center justify-between gap-2 flex-wrap px-1">
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+                    <span className="text-[11px] font-semibold text-neutral-400 shrink-0 ml-1 flex items-center gap-1">
+                      <Filter className="w-3 h-3" />
+                      <span>فیلتر فصول:</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setCategoryFilter("all")}
+                      className={cn(
+                        "px-3 py-1 rounded-lg transition-all text-xs font-semibold cursor-pointer border",
+                        categoryFilter === "all"
+                          ? "bg-black text-white border-black"
+                          : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50"
+                      )}
+                    >
+                      همه بخش‌ها ({activeRoadmap.steps.length})
+                    </button>
+                    {categories.map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setCategoryFilter(cat)}
+                        className={cn(
+                          "px-3 py-1 rounded-lg transition-all text-xs font-semibold cursor-pointer border shrink-0",
+                          categoryFilter === cat
+                            ? "bg-black text-white border-black"
+                            : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50"
+                        )}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+
+                  <span className="text-[11px] text-neutral-400 font-mono">
+                    {visibleSteps.length} گام درسی
+                  </span>
+                </div>
+
+                {/* Step Timeline Cards */}
+                <div className="space-y-3">
+                  {visibleSteps.map((step) => {
+                    const isDone = currentCompletedList.includes(step.id);
+                    const isExpanded = expandedStepId === step.id;
+
+                    return (
+                      <div
+                        key={step.id}
+                        id={`step-card-${step.id}`}
+                        className={cn(
+                          "rounded-2xl border transition-all overflow-hidden bg-white shadow-2xs",
+                          isDone
+                            ? "border-emerald-300 ring-1 ring-emerald-300/40"
+                            : isExpanded
+                            ? "border-neutral-900 ring-2 ring-neutral-900/10 shadow-sm"
+                            : "border-neutral-200 hover:border-neutral-300"
+                        )}
+                      >
+                        {/* Step Header Accordion */}
+                        <div
+                          onClick={() => {
+                            setExpandedStepId(isExpanded ? null : step.id);
+                          }}
+                          className="p-3.5 sm:p-4 flex items-center justify-between gap-3 cursor-pointer hover:bg-neutral-50/60 transition-colors"
+                        >
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
                             <button
                               type="button"
-                              onClick={() => onNavigateToArticle?.(step.articleId!, step.sectionId)}
-                              className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 rounded-xl bg-neutral-900 hover:bg-black text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleStepCompletion(step.id);
+                              }}
+                              className={cn(
+                                "w-6 h-6 rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 border",
+                                isDone
+                                  ? "bg-black border-black text-white"
+                                  : "bg-white border-neutral-300 text-neutral-400 hover:border-black"
+                              )}
+                              title={isDone ? "لغو تیک این گام" : "تیک زدن و تکمیل این گام"}
                             >
-                              <BookOpen className="w-3.5 h-3.5" />
-                              <span>مطالعه مقاله مرجع در دانشنامه</span>
+                              {isDone ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />}
                             </button>
-                          )}
 
-                          {step.toolsAction === "racks" && (
-                            <button
-                              type="button"
-                              onClick={() => onOpenRacksMap?.("racks")}
-                              className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 rounded-xl bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                            >
-                              <Server className="w-3.5 h-3.5" />
-                              <span>{step.actionLabel || "مشاهده رک در اطلس"}</span>
-                            </button>
-                          )}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-[11px] font-mono text-neutral-400 font-bold">
+                                  گام {step.order}
+                                </span>
+                                <span className="text-neutral-300">·</span>
+                                <span className="text-[11px] text-neutral-500">
+                                  {step.category}
+                                </span>
+                                <span className="text-neutral-300">·</span>
+                                <span className="text-[11px] font-mono text-neutral-400">
+                                  {step.duration}
+                                </span>
+                                {isDone && (
+                                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-mono">
+                                    تکمیل‌شده ✓
+                                  </span>
+                                )}
+                              </div>
 
-                          {step.toolsAction === "simulator" && (
-                            <button
-                              type="button"
-                              onClick={() => onOpenSimulator?.()}
-                              className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                            >
-                              <Play className="w-3.5 h-3.5 fill-current" />
-                              <span>{step.actionLabel || "اجرای سناریو در شبیه‌ساز"}</span>
-                            </button>
-                          )}
+                              <h3
+                                className={cn(
+                                  "text-sm font-bold text-neutral-900 truncate mt-0.5",
+                                  isDone ? "text-neutral-400 line-through" : ""
+                                )}
+                              >
+                                {step.title}
+                              </h3>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs text-neutral-400 hidden sm:inline font-medium">
+                              {isExpanded ? "بستن" : "مشاهده جزئیات"}
+                            </span>
+                            <ChevronDown
+                              className={cn(
+                                "w-4 h-4 text-neutral-400 transition-transform duration-150",
+                                isExpanded && "rotate-180 text-black"
+                              )}
+                            />
+                          </div>
                         </div>
 
-                        {/* Step Completion & Auto Advance Button */}
-                        <button
-                          type="button"
-                          onClick={() => handleCompleteAndNext(step)}
-                          className={cn(
-                            "w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs shrink-0",
-                            isDone
-                              ? "bg-neutral-100 text-neutral-800 hover:bg-neutral-200 border border-neutral-200"
-                              : "bg-emerald-600 hover:bg-emerald-700 text-white"
-                          )}
-                        >
-                          <CheckCircle2 className="w-4 h-4" />
-                          <span>{isDone ? "تکمیل شده (رفتن به بعدی)" : "تیک زدن و رفتن به گام بعد"}</span>
-                        </button>
+                        {/* Step Expanded Content */}
+                        {isExpanded && (
+                          <div className="p-4 sm:p-5 border-t border-neutral-100 bg-white space-y-4 animate-in fade-in duration-100 min-w-0">
+                            <div className="text-xs sm:text-sm text-neutral-700 leading-relaxed text-justify break-words border-s-2 border-black ps-3.5 py-0.5">
+                              {step.summary}
+                            </div>
+
+                            {/* Interactive Competencies Checklist */}
+                            <div className="pt-2 border-t border-neutral-100 space-y-2.5">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="font-bold text-neutral-800">
+                                  مهارت‌ها و شایستگی‌های محوری:
+                                </span>
+                                <span className="text-[11px] font-mono text-neutral-400">
+                                  {
+                                    step.keyCompetencies.filter(
+                                      (_, cIdx) => competencyChecks[`${step.id}-comp-${cIdx}`]
+                                    ).length
+                                  }{" "}
+                                  از {step.keyCompetencies.length} تسلط‌یافته
+                                </span>
+                              </div>
+
+                              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                {step.keyCompetencies.map((comp, cIdx) => {
+                                  const compKey = `${step.id}-comp-${cIdx}`;
+                                  const isChecked = !!competencyChecks[compKey];
+
+                                  return (
+                                    <li
+                                      key={cIdx}
+                                      onClick={() => toggleCompetency(compKey)}
+                                      className={cn(
+                                        "p-2.5 rounded-lg border flex items-start gap-2.5 transition-all cursor-pointer select-none",
+                                        isChecked
+                                          ? "bg-neutral-50 border-neutral-300 text-neutral-900 font-medium"
+                                          : "bg-white hover:bg-neutral-50/80 border-neutral-200 text-neutral-600"
+                                      )}
+                                    >
+                                      <span
+                                        className={cn(
+                                          "w-4 h-4 rounded flex items-center justify-center shrink-0 mt-0.5 transition-colors",
+                                          isChecked
+                                            ? "bg-black text-white"
+                                            : "border border-neutral-300 bg-white"
+                                        )}
+                                      >
+                                        {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
+                                      </span>
+                                      <span className="leading-snug flex-1 break-words">{comp}</span>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </div>
+
+                            {/* Actions Toolbar */}
+                            <div className="pt-3 border-t border-neutral-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setExpandedStepId(step.id);
+                                    setLearningViewMode("reader");
+                                    setTimeout(() => {
+                                      document.getElementById("active-topic-reader")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                    }, 50);
+                                  }}
+                                  className="px-3 py-1.5 rounded-lg bg-neutral-900 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer hover:bg-black"
+                                >
+                                  <BookOpen className="w-3.5 h-3.5" />
+                                  <span>مطالعه متمرکز این مبحث</span>
+                                </button>
+
+                                {step.articleId && (
+                                  <button
+                                    type="button"
+                                    onClick={() => onNavigateToArticle?.(step.articleId!, step.sectionId)}
+                                    className="px-3 py-1.5 rounded-lg border border-neutral-200 hover:border-black text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer text-neutral-700 hover:text-black"
+                                  >
+                                    <BookOpen className="w-3.5 h-3.5 text-neutral-500" />
+                                    <span>مطالعه در دانشنامه</span>
+                                  </button>
+                                )}
+
+                                {step.toolsAction === "racks" && (
+                                  <button
+                                    type="button"
+                                    onClick={() => onOpenRacksMap?.("racks")}
+                                    className="px-3 py-1.5 rounded-lg border border-neutral-200 hover:border-black text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer text-neutral-700 hover:text-black"
+                                  >
+                                    <Server className="w-3.5 h-3.5 text-neutral-500" />
+                                    <span>{step.actionLabel || "مشاهده در اطلس"}</span>
+                                  </button>
+                                )}
+
+                                {step.toolsAction === "simulator" && (
+                                  <button
+                                    type="button"
+                                    onClick={() => onOpenSimulator?.()}
+                                    className="px-3 py-1.5 rounded-lg border border-neutral-200 hover:border-black text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer text-neutral-700 hover:text-black"
+                                  >
+                                    <Play className="w-3.5 h-3.5 fill-current text-neutral-700" />
+                                    <span>{step.actionLabel || "اجرا در شبیه‌ساز"}</span>
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Step Completion & Auto Advance Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleCompleteAndNext(step)}
+                                className={cn(
+                                  "px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0",
+                                  isDone
+                                    ? "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+                                    : "bg-black hover:bg-neutral-800 text-white shadow-2xs"
+                                )}
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>{isDone ? "تکمیل شده (مبحث بعدی ⬅)" : "تیک زدن و مبحث بعد ⬅"}</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            )}
         </div>
       )}
 
